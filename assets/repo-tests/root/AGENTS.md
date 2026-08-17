@@ -85,6 +85,8 @@ python3 scripts/check_test_map.py
 
 The checker computes mapped and unmapped cases, duplicate review IDs, and orphan code mappings. Do not write computed automation results back into review documents.
 
+Keep supplemental tests simple, readable, and easy to maintain. Prefer a direct arrange-act-assert flow and the target's existing fixtures. Add abstractions such as helpers, wrappers, builders, shared setup, or parameterization only when they remove meaningful repetition without hiding the behavior or oracle. Assert the smallest set of caller-observable results, state changes, side effects, or errors that proves the review row; avoid incidental implementation details and tautological checks.
+
 ## Source Workspace
 
 - Reuse a matching checkout under `source/{{PROJECT_SLUG}}/`.
@@ -100,6 +102,7 @@ The checker computes mapped and unmapped cases, duplicate review IDs, and orphan
 - Find mapped code with `TEST-MAP: <CASE-ID>`; do not create a separate mapping ledger.
 - Update review rows first when product behavior changes, then stop for the mandatory review gate.
 - After confirmation, update automation, run focused tests, and run the mapping checker.
+- For every added or materially changed automated case, report why it was needed and how its observable assertions prove the expected behavior.
 - Keep setup, full-run, and focused-run commands current in the relevant README.
 - Do not create per-PR report directories, status histories, approval ledgers, or result archives.
 
@@ -111,6 +114,8 @@ Report only relevant fields:
 Review scope: <area, interface, behavior, or PR>
 Changed cases:
 - <ID> [P0/P1/P2] <scenario> -> <expected result>
+Added automation:
+- <ID>: why <specific behavior or regression risk>; assertions <observable result/state/error checked and why it proves the expectation>
 Automation coverage: <mapped>/<reviewed>; unmapped: <IDs or none>
 Verification: <command> -> <result and exit status>
 Residual risk: <ambiguous, manual, unobservable, or none>

@@ -196,6 +196,28 @@ class SkillContractTests(unittest.TestCase):
         self.assertNotIn("| 自动化 |", template)
         self.assertNotIn("TP-[", template)
 
+    def test_automation_guidance_requires_simple_tests_and_explained_assertions(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        agents = (ROOT / "assets" / "repo-tests" / "root" / "AGENTS.md").read_text(
+            encoding="utf-8"
+        )
+        suite_agents = (
+            ROOT / "assets" / "repo-tests" / "suite" / "AGENTS.md"
+        ).read_text(encoding="utf-8")
+        agent_prompt = (ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8")
+
+        for content in (skill, agents, suite_agents):
+            self.assertIn("direct", content)
+            self.assertIn("readable", content)
+            self.assertIn("abstraction", content)
+            self.assertIn("assertions", content)
+            self.assertIn("prove the expected behavior", content)
+
+        self.assertIn("Added automation:", skill)
+        self.assertIn("Added automation:", agents)
+        self.assertIn("simple, readable tests", agent_prompt)
+        self.assertIn("why each test and its assertions were added", agent_prompt)
+
 
 if __name__ == "__main__":
     unittest.main()

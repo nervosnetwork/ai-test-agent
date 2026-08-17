@@ -1,4 +1,4 @@
 interface:
   display_name: "AI Test Agent"
   short_description: "Review test intent before mapped automation"
-  default_prompt: "Use $ai-test-agent to create concise reviewer-facing cases for my target, stop for explicit review, then implement confirmed cases with TEST-MAP comments and verify dynamic automation coverage."
+  default_prompt: "Use $ai-test-agent to create concise reviewer-facing cases for my target, stop for explicit review, then implement confirmed cases as simple, readable tests with TEST-MAP comments, explain why each test and its assertions were added, and verify dynamic automation coverage."

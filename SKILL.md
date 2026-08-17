@@ -93,6 +93,14 @@ Treat automation as code-derived fact rather than document state:
 - A comment referencing no review case: orphan mapping that must be fixed.
 - The same case ID appearing in multiple review rows: duplicate review ID that must be fixed.
 
+Keep supplemental automation deliberately simple:
+
+- Prefer a direct arrange-act-assert flow that a reviewer can understand in one pass.
+- Reuse the target's existing fixtures and helpers, but introduce a new helper or abstraction only when it removes meaningful repetition without hiding the behavior under test.
+- Avoid test-only frameworks, generic builders, layered wrappers, parameterization, or shared setup for a small number of straightforward cases.
+- Assert the smallest set of caller-observable results, state changes, side effects, or errors that proves the review row. Avoid assertions on incidental implementation details and avoid tautological checks.
+- Optimize for local readability and maintenance rather than the fewest lines of test code.
+
 Run `python3 scripts/check_test_map.py` to report current mapping coverage. Use `--require-complete` only when the requested scope is expected to be fully automated. Report the computed summary in the handoff, for example `Automation coverage: 6/7; unmapped: RPC-07`; do not write it back into review documents.
 
 ## Project Layout
@@ -152,8 +160,9 @@ Treat initialization as three conversational gates. Confirmation is represented 
 1. Start only after the user explicitly confirms that the current review document or changed case IDs have completed review and are ready for implementation.
 2. Use the target's native language, runner, dependency conventions, and CI style.
 3. Add `TEST-MAP: <CASE-ID>` beside every mapped automated test.
-4. Run the narrowest meaningful tests, then run `python3 scripts/check_test_map.py` for the affected project.
-5. Report implemented IDs, computed automation coverage, verification results, and remaining ambiguous or manual behavior.
+4. Keep each added test direct and locally readable; do not add abstraction unless it clearly reduces meaningful duplication without obscuring the scenario or oracle.
+5. Run the narrowest meaningful tests, then run `python3 scripts/check_test_map.py` for the affected project.
+6. For every implemented ID, briefly explain why this automation was added and how its assertions prove the expected behavior. Also report computed automation coverage, verification results, and remaining ambiguous or manual behavior.
 
 ## Maintain a Test Project
 
@@ -164,8 +173,8 @@ Treat initialization as three conversational gates. Confirmation is represented 
 5. Translate each changed behavior into the affected review rows and the minimum test change needed for a concrete failure mode.
 6. Directly update existing rows when expectations or wording change; preserve IDs. Add or remove rows only when independently observable behavior is added or removed.
 7. If any row is new, deleted, or materially changed, present the complete changed set and stop for human review before touching mapped test code.
-8. After explicit confirmation, synchronize automatable tests and keep `TEST-MAP` comments current.
-9. Run focused verification and the mapping checker. Report unresolved product decisions and unautomated cases without persisting statuses or PR-specific reports.
+8. After explicit confirmation, synchronize automatable tests and keep `TEST-MAP` comments current. Prefer direct tests over new helpers, wrappers, builders, or parameterization unless the abstraction clearly improves readability and maintenance.
+9. Run focused verification and the mapping checker. For every added or materially changed automated case, explain the concrete reason for the test and the observable assertions used as its oracle. Report unresolved product decisions and unautomated cases without persisting statuses or PR-specific reports.
 
 For a previously unmapped product area, return to the test-area and review-case gates before implementation.
 
@@ -178,6 +187,8 @@ PR impact:
 - <changed behavior> -> <review document and case IDs> -> <required test action>
 Changed cases:
 - <ID> [P0/P1/P2] <scenario> -> <expected result>
+Added automation:
+- <ID>: why <specific behavior or regression risk>; assertions <observable result/state/error checked and why it proves the expectation>
 Automation coverage: <mapped>/<reviewed>; unmapped: <IDs or none>
 Verification: <command> -> <result and exit status>
 Residual risk: <ambiguous, manual, unobservable, or none>

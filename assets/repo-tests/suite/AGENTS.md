@@ -16,7 +16,8 @@ Read and follow root `../../AGENTS.md`. This file contains only {{SUITE_LABEL}}-
 3. Create or materially revise review rows before touching tests.
 4. Present the complete changed row set and stop for explicit human confirmation.
 5. Record corrective feedback using the root format, update the rows, and present material changes again.
-6. After confirmation, implement automation under {{CODE_DIRS}} with `TEST-MAP: <CASE-ID>` comments.
+6. After confirmation, implement direct, locally readable automation under {{CODE_DIRS}} with `TEST-MAP: <CASE-ID>` comments; introduce new abstractions only when they clearly improve maintenance without hiding the behavior or oracle.
 7. Run the focused suite command and `python3 ../../scripts/check_test_map.py --root ../..`.
+8. Explain why each added or materially changed automated case was needed and how its observable assertions prove the expected behavior.
 
 Keep case IDs globally unique across the test project. Do not add status columns or a separate automation mapping document.
