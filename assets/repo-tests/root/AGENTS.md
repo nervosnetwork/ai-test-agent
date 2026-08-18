@@ -1,26 +1,14 @@
 # {{PROJECT_NAME}} Test Project Instructions
 
-This file is the canonical instruction source for the standalone test project.
+This is the canonical project instruction file.
 
-## Purpose
-
-- Keep test intent easy for humans to review.
-- Keep executable tests independent from the product source repository.
-- Use one stable reviewer-facing case ID, such as `RPC-01`, from review row to test code.
-- Derive automation coverage from code rather than storing statuses or mapping ledgers.
-
-## Test Target
+## Target
 
 - Source repository: {{SOURCE_REPOSITORY}}
-- Local source checkout: `source/{{PROJECT_SLUG}}/`
+- Local checkout: `source/{{PROJECT_SLUG}}/`
 - Default revision: [branch, tag, or commit]
-- Test objects: [services, interfaces, protocols, components, or binaries]
-- Stable entry points: [commands, endpoints, configuration, or public APIs]
-- Reference material: [repo-relative documents or stable specifications]
-
-Keep stable shared facts here. Keep behavior-specific cases in review documents.
-
-## Layout
+- Test objects and entry points: [fill after discovery]
+- Stable setup, focused-test, and full-test commands: [fill after integration]
 
 {{TEST_LAYOUT_DESCRIPTION}}
 
@@ -28,99 +16,48 @@ Initialized approaches: {{SUITE_TYPES}}.
 
 {{SUITE_LIST}}
 
-## Human Review Contract
+## Workflow
 
-Use one review document per coherent interface or behavior. Keep the main table exactly:
+Work on one interface or review document and one gate at a time. Do not automatically advance to the next area.
+
+1. Write or materially revise reviewer-facing rows.
+2. Present the complete changed row set and stop before changing automated tests.
+3. Wait for explicit confirmation.
+4. Implement only confirmed cases with direct, readable tests and `TEST-MAP: <CASE-ID>` comments. Add an abstraction only when it removes meaningful repetition without hiding the assertions that prove the expected behavior.
+5. Run the focused command and `python3 scripts/check_test_map.py`. Run a broader suite only when justified; inspect CI once rather than polling it.
+
+Split larger scopes coherently instead of omitting behavior. Group related fields proved by the same operation and oracle.
+
+## Review rows
 
 ```markdown
 | 用例 | 场景 | 预期结果 | 防止的问题 | 优先级 |
 | --- | --- | --- | --- | --- |
-| `RPC-01` | [scenario] | [observable result] | [concrete problem prevented] | P0 |
+| `RPC-01` | [scenario] | [observable result] | [problem prevented] | P0 |
 ```
 
-- Keep each row self-contained and use plain product language.
-- Use globally unique case IDs. The review case ID is the only Test Point ID.
-- Preserve IDs when correcting wording, expectation, or priority.
-- Directly edit or remove obsolete rows; do not add approval, coverage, or automation statuses.
-- Do not place test paths, implementation plans, internal ID chains, or run history in review tables.
-- Use `待确认：<decision>` when behavior is ambiguous and call it out below the table.
+- Use globally unique stable IDs and plain product language.
+- Preserve an ID when editing the same behavior.
+- Use `待确认：<decision>` for ambiguity.
+- Do not add approval, coverage, automation status, paths, implementation plans, or run history to the table.
 
-## Mandatory Review Gate
+## Feedback and mapping
 
-For every new, deleted, or materially changed review row:
-
-1. Update the complete reviewer-facing row set.
-2. Present it and stop before changing automated tests.
-3. Wait for explicit human confirmation.
-4. Apply corrections and present material expectation changes again.
-5. Generate or update mapped test code only after confirmation.
-
-Do not combine review and implementation in one handoff. Existing unchanged rows remain eligible for implementation. Keep confirmation conversational rather than adding document statuses.
-
-## Review Feedback
-
-Before creating or revising cases, read the relevant `reviews/review-feedback.md` when it exists.
-
-When a human corrects AI-authored cases—missing or unnecessary cases, scenario or expectation errors, priority changes, merges, splits, renames, or deletions—append one physical line to the affected review directory's `review-feedback.md`:
+Read the nearest `reviews/review-feedback.md` before revising cases. On corrective feedback, append:
 
 ```text
 - model: <model-id-or-unavailable> | cases: <case IDs or review scope> | feedback: <human feedback verbatim>
 ```
 
-Create the file on the first correction. Preserve the feedback wording, collapse line breaks to spaces, and escape literal `|` characters as `\|`. Do not record approval without a correction. The file is reusable analysis feedback, not a case status, approval ledger, resolution log, or execution history.
+Preserve the wording, collapse line breaks, escape `|` as `\|`, and do not record approval without a correction. This is learning feedback, not a case status or approval ledger.
 
-## Automation Mapping
+Map each automated case with one nearby `TEST-MAP: <CASE-ID>` comment. Coverage is computed from code; do not maintain a mapping ledger.
 
-Every mapped automated test has one nearby native-language comment whose payload is exactly:
+## Efficiency and handoff
 
-```text
-TEST-MAP: <CASE-ID>
-```
+- Read targeted source ranges and affected files; avoid repository dumps and repeated unchanged reads.
+- Prefer one focused deterministic run. Bound live-network retries and report repeated unavailability as residual risk.
+- Group automation explanations by shared reason and oracle; expand only changed, failed, ambiguous, or high-risk cases.
+- Report changed IDs, coverage, literal verification result/exit status, residual risk, and the exact next gate. Do not repeat unchanged tables.
 
-The scenario and oracle belong in the review row and assertions, not in the mapping comment. Run:
-
-```bash
-python3 scripts/check_test_map.py
-```
-
-The checker computes mapped and unmapped cases, duplicate review IDs, and orphan code mappings. Do not write computed automation results back into review documents.
-
-Keep supplemental tests simple, readable, and easy to maintain. Prefer a direct arrange-act-assert flow and the target's existing fixtures. Add abstractions such as helpers, wrappers, builders, shared setup, or parameterization only when they remove meaningful repetition without hiding the behavior or oracle. Assert the smallest set of caller-observable results, state changes, side effects, or errors that proves the review row; avoid incidental implementation details and tautological checks.
-
-## Source Workspace
-
-- Reuse a matching checkout under `source/{{PROJECT_SLUG}}/`.
-- Clone the declared repository only when the path is absent.
-- Do not overwrite a conflicting path.
-- Product source is long-lived local data excluded by `.gitignore`.
-- For PR work, inspect the base/head diff first and read wider context only as needed.
-
-## Maintenance
-
-- Read the affected review document before changing tests.
-- Read relevant prior corrective feedback before analyzing coverage.
-- Find mapped code with `TEST-MAP: <CASE-ID>`; do not create a separate mapping ledger.
-- Update review rows first when product behavior changes, then stop for the mandatory review gate.
-- After confirmation, update automation, run focused tests, and run the mapping checker.
-- For every added or materially changed automated case, report why it was needed and how its observable assertions prove the expected behavior.
-- Keep setup, full-run, and focused-run commands current in the relevant README.
-- Do not create per-PR report directories, status histories, approval ledgers, or result archives.
-
-## Handoff
-
-Report only relevant fields:
-
-```text
-Review scope: <area, interface, behavior, or PR>
-Changed cases:
-- <ID> [P0/P1/P2] <scenario> -> <expected result>
-Added automation:
-- <ID>: why <specific behavior or regression risk>; assertions <observable result/state/error checked and why it proves the expectation>
-Automation coverage: <mapped>/<reviewed>; unmapped: <IDs or none>
-Verification: <command> -> <result and exit status>
-Residual risk: <ambiguous, manual, unobservable, or none>
-Needs review: <exact product decision or none>
-Next gate: <review confirmation required before implementation, or next implementation action>
-```
-
-Omit irrelevant sections rather than printing placeholder fields.
+Keep stable commands current in the relevant README. Do not create per-PR reports, run archives, approval histories, or status ledgers.

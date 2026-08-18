@@ -1,23 +1,11 @@
 # {{PROJECT_NAME}} {{SUITE_LABEL}} Test Instructions
 
-Read and follow root `../../AGENTS.md`. This file contains only {{SUITE_LABEL}}-specific routing.
-
-## Scope
+Read root `../../AGENTS.md`; this file only routes suite-specific work.
 
 - Focus: {{SUITE_FOCUS}}.
-- Review documents: `reviews/`.
-- Executable areas: {{CODE_DIRS}}.
-- Shared or reusable inputs: `fixtures/`.
-
-## Workflow
-
-1. Read root instructions, this file, the affected review document, and this suite's README.
-2. Read `reviews/review-feedback.md` when it exists and apply relevant prior corrections.
-3. Create or materially revise review rows before touching tests.
-4. Present the complete changed row set and stop for explicit human confirmation.
-5. Record corrective feedback using the root format, update the rows, and present material changes again.
-6. After confirmation, implement direct, locally readable automation under {{CODE_DIRS}} with `TEST-MAP: <CASE-ID>` comments; introduce new abstractions only when they clearly improve maintenance without hiding the behavior or oracle.
-7. Run the focused suite command and `python3 ../../scripts/check_test_map.py --root ../..`.
-8. Explain why each added or materially changed automated case was needed and how its observable assertions prove the expected behavior.
-
-Keep case IDs globally unique across the test project. Do not add status columns or a separate automation mapping document.
+- Reviews: `reviews/`; executable areas: {{CODE_DIRS}}; reusable inputs: `fixtures/`.
+- Read `reviews/review-feedback.md` when present.
+- Keep case IDs globally unique and map tests with `TEST-MAP: <CASE-ID>`.
+- After confirmation, implement direct, readable tests; add an abstraction only when it improves readability without hiding behavior or assertions that prove the expected behavior.
+- Verify with the focused suite command and `python3 ../../scripts/check_test_map.py --root ../..`.
+- Do not advance to another review document automatically or poll CI repeatedly.

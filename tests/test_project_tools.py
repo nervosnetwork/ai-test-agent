@@ -165,17 +165,21 @@ class MappingCheckerTests(unittest.TestCase):
 
 
 class SkillContractTests(unittest.TestCase):
+    def read_contract(self) -> str:
+        paths = [ROOT / "SKILL.md", *sorted((ROOT / "references").glob("*.md"))]
+        return "\n".join(path.read_text(encoding="utf-8") for path in paths)
+
     def test_review_gate_precedes_automation(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         agents = (ROOT / "assets" / "repo-tests" / "root" / "AGENTS.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("Do not collapse review and implementation into one handoff", skill)
-        self.assertIn("Generate or update automated tests only after", skill)
+        self.assertIn("Do not combine review and implementation in one handoff", skill)
+        self.assertIn("Generate or update mapped tests only after", skill)
         self.assertIn("stop before changing automated tests", agents)
 
     def test_corrective_feedback_is_persisted_without_case_status(self) -> None:
-        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        skill = self.read_contract()
         agents = (ROOT / "assets" / "repo-tests" / "root" / "AGENTS.md").read_text(
             encoding="utf-8"
         )
@@ -183,7 +187,7 @@ class SkillContractTests(unittest.TestCase):
             "- model: <model-id-or-unavailable> | cases: <case IDs or review scope> | "
             "feedback: <human feedback verbatim>"
         )
-        self.assertIn("## Review Feedback Collection", skill)
+        self.assertIn("## Corrective feedback", skill)
         self.assertIn(feedback_format, skill)
         self.assertIn("Do not record approval without a correction", skill)
         self.assertIn("reviews/review-feedback.md", agents)
@@ -197,7 +201,7 @@ class SkillContractTests(unittest.TestCase):
         self.assertNotIn("TP-[", template)
 
     def test_automation_guidance_requires_simple_tests_and_explained_assertions(self) -> None:
-        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        skill = self.read_contract()
         agents = (ROOT / "assets" / "repo-tests" / "root" / "AGENTS.md").read_text(
             encoding="utf-8"
         )
@@ -214,9 +218,31 @@ class SkillContractTests(unittest.TestCase):
             self.assertIn("prove the expected behavior", content)
 
         self.assertIn("Added automation:", skill)
-        self.assertIn("Added automation:", agents)
-        self.assertIn("simple, readable tests", agent_prompt)
-        self.assertIn("why each test and its assertions were added", agent_prompt)
+        self.assertIn("direct TEST-MAP tests", agent_prompt)
+
+    def test_token_budget_rules_and_progressive_disclosure(self) -> None:
+        skill_path = ROOT / "SKILL.md"
+        skill = skill_path.read_text(encoding="utf-8")
+        agents = (ROOT / "assets" / "repo-tests" / "root" / "AGENTS.md").read_text(
+            encoding="utf-8"
+        )
+        suite_agents = (
+            ROOT / "assets" / "repo-tests" / "suite" / "AGENTS.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertLessEqual(len(skill.split()), 1200)
+        self.assertLessEqual(len(agents.split()), 500)
+        self.assertLessEqual(len(suite_agents.split()), 140)
+        self.assertIn("Do not automatically continue to the next interface", skill)
+        self.assertIn("Do not repeatedly poll", skill)
+        for reference in [
+            "help.md",
+            "initialize.md",
+            "review-cases.md",
+            "automation-maintenance.md",
+        ]:
+            self.assertTrue((ROOT / "references" / reference).is_file(), reference)
+            self.assertIn(f"references/{reference}", skill)
 
 
 if __name__ == "__main__":

@@ -28,6 +28,7 @@
 <!--
 Authoring rules:
 - Keep one independently observable behavior per physical row.
+- Group related fields proved by the same operation and oracle.
 - Keep the row self-contained and use plain product language.
 - The case ID is the only Test Point ID; preserve it when editing the row.
 - Do not add approval, coverage, or automation statuses.
