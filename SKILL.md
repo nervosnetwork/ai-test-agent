@@ -43,14 +43,15 @@ Use this exact table:
 ```markdown
 | 用例 | 场景 | 预期结果 | 防止的问题 | 优先级 |
 | --- | --- | --- | --- | --- |
-| `RPC-01` | 提交有效请求 | 返回结果并产生一次预期副作用 | 正常请求失败或被重复处理 | P0 |
+| `RPC-01` | - [ ] 提交有效请求 | 返回结果并产生一次预期副作用 | 正常请求失败或被重复处理 | P0 |
 ```
 
 - Keep every row self-contained and behavior-focused.
+- Start every scenario cell with a task-list checkbox: `- [ ]` means no mapped automation and `- [x]` means a matching `TEST-MAP` exists. New cases start unchecked.
 - Use `P0` for release-blocking core behavior, `P1` for important failures and boundaries, and `P2` for lower-impact edges.
 - Write `待确认：<decision>` in the expected-result cell when behavior is ambiguous.
 - Preserve an ID when wording, expectation, or priority changes. Add an ID only for a new observable behavior.
-- Keep paths, implementation steps, evidence chains, run history, and automation status outside the table.
+- Keep paths, implementation steps, evidence chains, and run history outside the table. The scenario checkbox is the only automation-status display in a review row.
 
 Read [references/review-cases.md](references/review-cases.md) only when creating or materially revising review rows or recording corrective feedback.
 
@@ -78,10 +79,12 @@ def test_missing_parameter(...):
 
 Mapping facts come from code:
 
-- no matching comment: unautomated;
-- matching comment: automated;
+- no matching comment: unautomated, so the scenario starts with `- [ ]`;
+- matching comment: automated, so the scenario starts with `- [x]`;
 - unknown case ID: orphan mapping;
 - repeated review ID: duplicate that must be fixed.
+
+Whenever mapped automation is added or removed, update the scenario checkbox in the same change. The checkbox mirrors code; it does not replace `TEST-MAP` as the mapping source of truth.
 
 Run `python3 scripts/check_test_map.py`. Use `--require-complete` only when the requested scope is expected to be fully automated.
 

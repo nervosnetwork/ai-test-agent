@@ -8,6 +8,8 @@ Emit only supported cases. Prefer one case that proves a coherent observable res
 
 Use `templates/test-review.md`. Summarize genuine N/A decisions or unresolved behavior in short prose.
 
+Prefix every scenario cell with `- [ ]` for a case without mapped automation or `- [x]` for a case with a matching `TEST-MAP` comment. New review rows start unchecked; change the marker only when mapped test code is added or removed.
+
 ## Corrective feedback
 
 Before revising cases, read the nearest `reviews/review-feedback.md` when it exists.

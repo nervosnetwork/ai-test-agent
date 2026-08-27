@@ -33,13 +33,14 @@ Split larger scopes coherently instead of omitting behavior. Group related field
 ```markdown
 | 用例 | 场景 | 预期结果 | 防止的问题 | 优先级 |
 | --- | --- | --- | --- | --- |
-| `RPC-01` | [scenario] | [observable result] | [problem prevented] | P0 |
+| `RPC-01` | - [ ] [scenario] | [observable result] | [problem prevented] | P0 |
 ```
 
 - Use globally unique stable IDs and plain product language.
 - Preserve an ID when editing the same behavior.
 - Use `待确认：<decision>` for ambiguity.
-- Do not add approval, coverage, automation status, paths, implementation plans, or run history to the table.
+- Prefix each scenario with `- [ ]` when it has no mapped automation or `- [x]` when its `TEST-MAP` exists. New rows start unchecked.
+- Do not add approval, coverage, any other automation-status field, paths, implementation plans, or run history to the table.
 
 ## Feedback and mapping
 
@@ -51,7 +52,7 @@ Read the nearest `reviews/review-feedback.md` before revising cases. On correcti
 
 Preserve the wording, collapse line breaks, escape `|` as `\|`, and do not record approval without a correction. This is learning feedback, not a case status or approval ledger.
 
-Map each automated case with one nearby `TEST-MAP: <CASE-ID>` comment. Coverage is computed from code; do not maintain a mapping ledger.
+Map each automated case with one nearby `TEST-MAP: <CASE-ID>` comment. Keep the scenario checkbox synchronized when mappings are added or removed. Coverage is computed from code; the checkbox is a visible projection, not a mapping ledger.
 
 ## Efficiency and handoff
 

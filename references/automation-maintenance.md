@@ -6,9 +6,10 @@
 2. Use the target's native language, runner, fixtures, and CI conventions.
 3. Prefer direct, readable arrange-act-assert tests. Add an abstraction only when it removes meaningful repetition without hiding the behavior or oracle.
 4. Use assertions on the smallest caller-observable result, state change, side effect, or error needed to prove the expected behavior. Avoid incidental details and tautologies.
-5. Run one focused deterministic command and the mapping checker.
-6. If justified, run one broader suite. Use live networks only for behavior that requires them, with bounded retries.
-7. Check CI once after pushing. Report pending status rather than polling unless the user explicitly requests waiting.
+5. Update each affected scenario checkbox to `- [x]` when its `TEST-MAP` is present, or `- [ ]` when its mapping is removed.
+6. Run one focused deterministic command and the mapping checker; it validates checkbox-to-code consistency.
+7. If justified, run one broader suite. Use live networks only for behavior that requires them, with bounded retries.
+8. Check CI once after pushing. Report pending status rather than polling unless the user explicitly requests waiting.
 
 Explain added automation compactly. Group IDs that share the same reason and oracle; expand failed, ambiguous, or unusually risky cases only.
 

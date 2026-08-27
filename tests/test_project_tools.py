@@ -55,6 +55,10 @@ class ProjectGeneratorTests(unittest.TestCase):
                 self.assertTrue((output / relative).is_file(), relative)
             self.assertFalse((output / "suites").exists())
             self.assertNotIn("MOD -> FUNC -> COV -> TP", (output / "README.md").read_text())
+            self.assertIn(
+                "| `[AREA-01]` | - [ ] ",
+                (output / "templates" / "test-review.md").read_text(),
+            )
 
             with (output / "README.md").open("a", encoding="utf-8") as handle:
                 handle.write("\nsentinel\n")
@@ -122,8 +126,8 @@ class MappingCheckerTests(unittest.TestCase):
 
 | 用例 | 场景 | 预期结果 | 防止的问题 | 优先级 |
 | --- | --- | --- | --- | --- |
-| `RPC-01` | valid request | success | normal calls fail | P0 |
-| `RPC-02` | missing input | reject | invalid input reaches core | P1 |
+| `RPC-01` | - [x] valid request | success | normal calls fail | P0 |
+| `RPC-02` | - [ ] missing input | reject | invalid input reaches core | P1 |
 """,
             encoding="utf-8",
         )
@@ -148,6 +152,14 @@ class MappingCheckerTests(unittest.TestCase):
 
             with (root / "tests" / "rpc" / "test_submit.py").open("a", encoding="utf-8") as handle:
                 handle.write("\n# TEST-MAP: RPC-02\ndef test_missing():\n    assert True\n")
+            review = root / "reviews" / "rpc" / "submit_transaction.md"
+            review.write_text(
+                review.read_text(encoding="utf-8").replace(
+                    "| `RPC-02` | - [ ] missing input",
+                    "| `RPC-02` | - [x] missing input",
+                ),
+                encoding="utf-8",
+            )
             complete = run(str(CHECKER), "--root", str(root), "--require-complete")
             self.assertEqual(complete.returncode, 0, complete.stdout)
             self.assertIn("automation coverage: 2/2", complete.stdout)
@@ -162,6 +174,23 @@ class MappingCheckerTests(unittest.TestCase):
             result = run(str(CHECKER), "--root", str(root))
             self.assertEqual(result.returncode, 1, result.stdout)
             self.assertIn("orphan mappings: RPC-99", result.stdout)
+
+    def test_missing_or_stale_scenario_checkbox_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.write_project(root)
+            review = root / "reviews" / "rpc" / "submit_transaction.md"
+            original = review.read_text(encoding="utf-8")
+
+            review.write_text(original.replace("- [x] valid request", "valid request"), encoding="utf-8")
+            missing = run(str(CHECKER), "--root", str(root))
+            self.assertEqual(missing.returncode, 1, missing.stdout)
+            self.assertIn("missing automation markers: RPC-01", missing.stdout)
+
+            review.write_text(original.replace("- [x] valid request", "- [ ] valid request"), encoding="utf-8")
+            stale = run(str(CHECKER), "--root", str(root))
+            self.assertEqual(stale.returncode, 1, stale.stdout)
+            self.assertIn("automation marker mismatches: RPC-01 (expected - [x])", stale.stdout)
 
 
 class SkillContractTests(unittest.TestCase):
@@ -193,9 +222,10 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("reviews/review-feedback.md", agents)
         self.assertIn("not a case status", agents)
 
-    def test_review_template_has_no_case_status_or_automation_column(self) -> None:
+    def test_review_template_uses_scenario_checkbox_without_automation_column(self) -> None:
         template = (ROOT / "templates" / "test-review.md").read_text(encoding="utf-8")
         self.assertIn("| 用例 | 场景 | 预期结果 | 防止的问题 | 优先级 |", template)
+        self.assertIn("| `[AREA-01]` | - [ ] ", template)
         self.assertNotIn("| 状态 |", template)
         self.assertNotIn("| 自动化 |", template)
         self.assertNotIn("TP-[", template)
