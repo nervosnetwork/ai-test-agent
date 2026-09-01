@@ -12,7 +12,7 @@ Prefix every scenario cell with `- [ ]` for a case without mapped automation or 
 
 ## Corrective feedback
 
-Before revising cases, read the nearest `reviews/review-feedback.md` when it exists.
+Before revising cases, read root `reviews/review-feedback.md` when it exists.
 
 When a human corrects AI-authored cases—missing or unnecessary cases, scenario or expectation errors, priority changes, merges, splits, renames, or deletions—append one physical line:
 
@@ -26,4 +26,4 @@ When a human corrects AI-authored cases—missing or unnecessary cases, scenario
 - Do not record approval without a correction.
 - Keep the file as reusable analysis feedback, not a case status, approval ledger, resolution log, or run history.
 
-In a single-suite project use root `reviews/review-feedback.md`; in a multi-suite project use the affected suite's file.
+Use one root `reviews/review-feedback.md` across all suites so corrections remain centralized with the review documents.

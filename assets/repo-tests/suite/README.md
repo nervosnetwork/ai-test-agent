@@ -4,7 +4,7 @@ Focus: {{SUITE_FOCUS}}.
 
 ## Layout
 
-- `reviews/`: concise reviewer-facing case tables.
+- `../../reviews/`: centralized reviewer-facing case tables for every suite.
 - {{CODE_DIRS}}: executable tests or targets.
 - `fixtures/`: suite-owned reusable inputs.
 
@@ -21,5 +21,5 @@ Focused run: pending target integration
 Mapping check from this directory:
 
 ```bash
-python3 ../../scripts/check_test_map.py --root ../..
+python3 ../../scripts/check_test_map.py
 ```
