@@ -44,7 +44,7 @@ Split larger scopes coherently instead of omitting behavior. Group related field
 
 ## Feedback and mapping
 
-Read the nearest `reviews/review-feedback.md` before revising cases. On corrective feedback, append:
+Read root `reviews/review-feedback.md` before revising cases. On corrective feedback, append:
 
 ```text
 - model: <model-id-or-unavailable> | cases: <case IDs or review scope> | feedback: <human feedback verbatim>
