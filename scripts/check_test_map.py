@@ -16,7 +16,7 @@ REVIEW_ROW = re.compile(
 )
 TASK_CHECKBOX = re.compile(r"^-\s+\[(?P<state>[ xX])\]\s+")
 TEST_MAP = re.compile(rf"\bTEST-MAP:\s*(?P<case>{CASE_TOKEN})\b")
-CODE_DIR_NAMES = {"tests", "benchmarks", "targets"}
+CODE_DIR_NAMES = {"case", "tests", "benchmarks", "targets"}
 CODE_SUFFIXES = {
     ".c",
     ".cc",
@@ -40,6 +40,7 @@ CODE_SUFFIXES = {
     ".tsx",
 }
 SKIP_DIRS = {".git", ".idea", ".pytest_cache", ".venv", "node_modules", "source", "__pycache__"}
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 def parse_args() -> argparse.Namespace:
@@ -49,8 +50,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--root",
         type=Path,
-        default=Path.cwd(),
-        help="Test-project root (default: current directory)",
+        default=PROJECT_ROOT,
+        help="Test-project root (default: repository containing this script)",
     )
     parser.add_argument(
         "--require-complete",

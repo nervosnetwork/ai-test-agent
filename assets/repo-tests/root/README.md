@@ -7,7 +7,8 @@ This repository stores human-reviewed test intent and automation mapped by `TEST
 {{SUITE_LIST}}
 
 - `source/{{PROJECT_SLUG}}/`: ignored product checkout.
-- `reviews/`: concise behavior tables.
+- `reviews/`: centralized behavior tables for every suite.
+- `suites/<suite>/`: module-owned executable automation, commands, and fixtures.
 - `scripts/check_test_map.py`: computed mapping coverage.
 
 Work on one review document at a time: present changed rows, stop for confirmation, implement confirmed cases, then run a focused test and the mapping checker. Stable commands follow.

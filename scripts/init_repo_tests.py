@@ -198,34 +198,16 @@ def main() -> int:
     if missing:
         raise SystemExit(f"required skill assets are missing: {', '.join(missing)}")
 
-    single_suite = len(suite_specs) == 1
-    if single_suite:
-        suite, metadata = suite_specs[0]
-        code_dirs = metadata["code_dirs"]
-        layout = (
-            f"A single {metadata['label']} approach uses root `reviews/`, "
-            f"{', '.join(f'`{name}/`' for name in code_dirs)}, and `fixtures/`."
-        )
-        suite_list = (
-            f"- Root review and execution scope: {metadata['label']} — {metadata['focus']}."
-        )
-        review_locations = "- `reviews/<area>/<interface-or-behavior>.md`"
-        commands = (
-            "Replace after target integration:\n\n"
-            "```text\nSetup: pending target integration\nRun: pending target integration\n"
-            "Focused run: pending target integration\n```"
-        )
-    else:
-        layout = "Independent runners and assurance approaches live under `suites/<suite>/`."
-        suite_list = "\n".join(
-            f"- `suites/{suite}/`: {metadata['label']} — {metadata['focus']}."
-            for suite, metadata in suite_specs
-        )
-        review_locations = "\n".join(
-            f"- `suites/{suite}/reviews/<area>/<interface-or-behavior>.md`"
-            for suite, _ in suite_specs
-        )
-        commands = "Setup and run commands live in each suite README."
+    layout = (
+        "Reviewer-facing case documents are centralized under root `reviews/`; "
+        "executable automation and fixtures are grouped by module under `suites/<suite>/`."
+    )
+    suite_list = "\n".join(
+        f"- `suites/{suite}/`: {metadata['label']} — {metadata['focus']}."
+        for suite, metadata in suite_specs
+    )
+    review_locations = "- `reviews/<area>/<interface-or-behavior>.md`"
+    commands = "Setup and run commands live in each suite README."
 
     common = {
         "PROJECT_NAME": args.project.strip(),
@@ -269,65 +251,45 @@ def main() -> int:
     )
     checker_output.chmod(0o755)
 
-    if single_suite:
-        _, metadata = suite_specs[0]
+    for suite, metadata in suite_specs:
+        code_dirs = metadata["code_dirs"]
+        replacements = {
+            **common,
+            "SUITE_TYPE": suite,
+            "SUITE_LABEL": metadata["label"],
+            "SUITE_FOCUS": metadata["focus"],
+            "CODE_DIRS": ", ".join(f"`{name}/`" for name in code_dirs),
+        }
+        suite_output = output / "suites" / suite
+        render_tree(
+            suite_template,
+            suite_output,
+            replacements,
+            force=args.force,
+            created=created,
+            replaced=replaced,
+            skipped=skipped,
+        )
         write_file(
-            output / "fixtures" / "README.md",
+            suite_output / "fixtures" / "README.md",
             fixtures_readme(metadata["label"]),
             force=args.force,
             created=created,
             replaced=replaced,
             skipped=skipped,
         )
-        for directory, purpose in metadata["code_dirs"].items():
+        for directory, purpose in code_dirs.items():
             write_file(
-                output / directory / "README.md",
+                suite_output / directory / "README.md",
                 readme_for_directory(metadata["label"], directory, purpose),
                 force=args.force,
                 created=created,
                 replaced=replaced,
                 skipped=skipped,
             )
-    else:
-        for suite, metadata in suite_specs:
-            code_dirs = metadata["code_dirs"]
-            replacements = {
-                **common,
-                "SUITE_TYPE": suite,
-                "SUITE_LABEL": metadata["label"],
-                "SUITE_FOCUS": metadata["focus"],
-                "CODE_DIRS": ", ".join(f"`{name}/`" for name in code_dirs),
-            }
-            suite_output = output / "suites" / suite
-            render_tree(
-                suite_template,
-                suite_output,
-                replacements,
-                force=args.force,
-                created=created,
-                replaced=replaced,
-                skipped=skipped,
-            )
-            write_file(
-                suite_output / "fixtures" / "README.md",
-                fixtures_readme(metadata["label"]),
-                force=args.force,
-                created=created,
-                replaced=replaced,
-                skipped=skipped,
-            )
-            for directory, purpose in code_dirs.items():
-                write_file(
-                    suite_output / directory / "README.md",
-                    readme_for_directory(metadata["label"], directory, purpose),
-                    force=args.force,
-                    created=created,
-                    replaced=replaced,
-                    skipped=skipped,
-                )
 
     print(f"test-project: {output.resolve()}")
-    print(f"layout: {'single-suite' if single_suite else 'multi-suite'}")
+    print("layout: centralized-reviews-with-suites")
     print(f"created: {len(created)}")
     print(f"replaced: {len(replaced)}")
     print(f"preserved: {len(skipped)}")

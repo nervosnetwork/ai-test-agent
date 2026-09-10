@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -27,7 +28,7 @@ def run(*args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]
 
 
 class ProjectGeneratorTests(unittest.TestCase):
-    def test_single_suite_uses_flat_review_and_test_layout(self) -> None:
+    def test_single_suite_uses_central_reviews_and_suite_automation(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "demo-tests"
             first = run(
@@ -42,19 +43,27 @@ class ProjectGeneratorTests(unittest.TestCase):
                 str(output),
             )
             self.assertEqual(first.returncode, 0, first.stdout)
-            self.assertIn("layout: single-suite", first.stdout)
+            self.assertIn("layout: centralized-reviews-with-suites", first.stdout)
             for relative in [
                 "AGENTS.md",
                 "README.md",
                 "reviews/README.md",
-                "tests/README.md",
-                "fixtures/README.md",
+                "suites/api/AGENTS.md",
+                "suites/api/README.md",
+                "suites/api/tests/README.md",
+                "suites/api/fixtures/README.md",
                 "scripts/check_test_map.py",
                 "templates/test-review.md",
             ]:
                 self.assertTrue((output / relative).is_file(), relative)
-            self.assertFalse((output / "suites").exists())
+            self.assertFalse((output / "tests").exists())
+            self.assertFalse((output / "fixtures").exists())
+            self.assertFalse((output / "suites" / "api" / "reviews").exists())
             self.assertNotIn("MOD -> FUNC -> COV -> TP", (output / "README.md").read_text())
+            self.assertIn(
+                "centralized under root `reviews/`",
+                (output / "README.md").read_text(),
+            )
             self.assertIn(
                 "| `[AREA-01]` | - [ ] ",
                 (output / "templates" / "test-review.md").read_text(),
@@ -77,7 +86,7 @@ class ProjectGeneratorTests(unittest.TestCase):
             self.assertIn("sentinel", (output / "README.md").read_text())
             self.assertIn("created: 0", second.stdout)
 
-    def test_multiple_suites_are_isolated_only_when_needed(self) -> None:
+    def test_multiple_suites_share_root_reviews(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "demo-tests"
             result = run(
@@ -93,17 +102,18 @@ class ProjectGeneratorTests(unittest.TestCase):
                 str(output),
             )
             self.assertEqual(result.returncode, 0, result.stdout)
-            self.assertIn("layout: multi-suite", result.stdout)
+            self.assertIn("layout: centralized-reviews-with-suites", result.stdout)
             for relative in [
-                "suites/integration/reviews/README.md",
+                "reviews/README.md",
                 "suites/integration/tests/README.md",
                 "suites/integration/config/README.md",
-                "suites/performance/reviews/README.md",
                 "suites/performance/benchmarks/README.md",
                 "suites/performance/workloads/README.md",
             ]:
                 self.assertTrue((output / relative).is_file(), relative)
             self.assertFalse((output / "tests").exists())
+            self.assertFalse((output / "suites" / "integration" / "reviews").exists())
+            self.assertFalse((output / "suites" / "performance" / "reviews").exists())
 
     def test_source_repository_is_required(self) -> None:
         result = run(
@@ -192,6 +202,35 @@ class MappingCheckerTests(unittest.TestCase):
             self.assertEqual(stale.returncode, 1, stale.stdout)
             self.assertIn("automation marker mismatches: RPC-01 (expected - [x])", stale.stdout)
 
+    def test_default_root_and_suite_case_directory_are_supported(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "demo-tests"
+            scripts = root / "scripts"
+            scripts.mkdir(parents=True)
+            shutil.copy2(CHECKER, scripts / "check_test_map.py")
+
+            review = root / "reviews" / "p2p" / "ping.md"
+            review.parent.mkdir(parents=True)
+            review.write_text(
+                """# P2P Review
+
+| 用例 | 场景 | 预期结果 | 防止的问题 | 优先级 |
+| --- | --- | --- | --- | --- |
+| `P2P-PING-01` | - [x] valid ping | pong | liveness failure | P0 |
+""",
+                encoding="utf-8",
+            )
+            case = root / "suites" / "p2p" / "runner" / "src" / "case" / "ping.rs"
+            case.parent.mkdir(parents=True)
+            case.write_text("// TEST-MAP: P2P-PING-01\n", encoding="utf-8")
+            unrelated = Path(temporary) / "elsewhere"
+            unrelated.mkdir()
+
+            result = run(str(scripts / "check_test_map.py"), cwd=unrelated)
+            self.assertEqual(result.returncode, 0, result.stdout)
+            self.assertIn("automation coverage: 1/1", result.stdout)
+            self.assertIn("orphan mappings: none", result.stdout)
+
 
 class SkillContractTests(unittest.TestCase):
     def read_contract(self) -> str:
@@ -273,6 +312,22 @@ class SkillContractTests(unittest.TestCase):
         ]:
             self.assertTrue((ROOT / "references" / reference).is_file(), reference)
             self.assertIn(f"references/{reference}", skill)
+
+    def test_reviews_are_central_and_automation_is_suite_owned(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        initialize = (ROOT / "references" / "initialize.md").read_text(encoding="utf-8")
+        suite_agents = (ROOT / "assets" / "repo-tests" / "suite" / "AGENTS.md").read_text(
+            encoding="utf-8"
+        )
+        checker = (ROOT / "scripts" / "check_test_map.py").read_text(encoding="utf-8")
+
+        self.assertIn("Root `reviews/` centrally", skill)
+        self.assertIn("under `suites/<suite>/`", skill)
+        self.assertIn("Do not create suite-local `reviews/` copies", initialize)
+        self.assertIn("root `../../reviews/`", suite_agents)
+        self.assertFalse((ROOT / "assets" / "repo-tests" / "suite" / "reviews").exists())
+        self.assertIn('CODE_DIR_NAMES = {"case", "tests", "benchmarks", "targets"}', checker)
+        self.assertIn("default=PROJECT_ROOT", checker)
 
 
 if __name__ == "__main__":

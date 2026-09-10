@@ -7,8 +7,8 @@ description: Maintain reviewer-first standalone test projects that use concise c
 
 Use two sources of truth:
 
-- `reviews/` contains behavior a human can judge.
-- Executable tests contain a nearby `TEST-MAP: <CASE-ID>` comment.
+- Root `reviews/` centrally contains behavior a human can judge across every module.
+- Executable tests live under `suites/<suite>/` and contain a nearby `TEST-MAP: <CASE-ID>` comment.
 
 Do not create coverage ledgers, approval statuses, or internal ID chains.
 
@@ -22,7 +22,7 @@ Keep each invocation bounded:
 
 Keep context small:
 
-- Read the nearest `AGENTS.md`, affected review document, feedback file, mapped tests, and only the source or diff needed for the current behavior.
+- Read the nearest `AGENTS.md`, affected root review document, root feedback file, mapped suite tests, and only the source or diff needed for the current behavior.
 - Locate with `rg` or equivalent before reading targeted ranges. Avoid repository-wide file dumps and repeated reads of unchanged instructions.
 - Batch related reads and checks.
 - After context compaction, recover from current files, `git diff`, and the affected document rather than replaying the whole repository.

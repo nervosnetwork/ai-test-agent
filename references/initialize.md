@@ -28,9 +28,9 @@ After map confirmation, select one coherent review document and follow `review-c
 
 After row confirmation, follow `automation-maintenance.md`. Implement only confirmed IDs.
 
-## Layout choice
+## Layout
 
-Use the flat layout for one runner or assurance approach:
+Keep reviewer-facing intent centralized at the root and group all executable automation by module or runner under `suites/`, even when the project starts with one suite:
 
 ```text
 <project>-tests/
@@ -38,11 +38,12 @@ Use the flat layout for one runner or assurance approach:
 ├── README.md
 ├── source/<project>/
 ├── reviews/<area>/<behavior>.md
-├── tests/ or benchmarks/ or targets/
-├── fixtures/
+├── suites/<suite>/
+│   ├── tests/ or case/ or benchmarks/ or targets/
+│   └── fixtures/
 └── scripts/check_test_map.py
 ```
 
-Create `suites/<suite>/` only for genuinely independent runners such as API, P2P, performance, or fuzz. Keep case IDs unique across the project.
+Do not create suite-local `reviews/` copies. Add another `suites/<suite>/` directory when a new module or runner needs separate commands, fixtures, or executable ownership. Keep case IDs unique across the project.
 
 Reuse a matching checkout under `source/<project>/`; clone only when absent and never overwrite a conflicting path.
