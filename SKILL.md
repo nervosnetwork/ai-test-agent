@@ -86,6 +86,8 @@ Mapping facts come from code:
 - unknown case ID: orphan mapping;
 - repeated review ID: duplicate that must be fixed.
 
+When cases change, review every corresponding test point via its case ID. After the required confirmation, synchronize affected test inputs, steps, assertions, and mappings; document-only changes do not establish alignment.
+
 Whenever mapped automation is added or removed, update the scenario checkbox in the same change. The checkbox mirrors code; it does not replace `TEST-MAP` as the mapping source of truth.
 
 Run `python3 scripts/check_test_map.py`. Use `--require-complete` only when the requested scope is expected to be fully automated.
