@@ -1,5 +1,11 @@
 # Automation, Maintenance, and PR Work
 
+## Implementation caution: simple, readable, maintainable
+
+- Prefer the simplest implementation that proves the confirmed behavior; avoid speculative frameworks and excessive abstraction.
+- Keep setup, action, and assertions easy to follow, with descriptive names and failure messages that identify what went wrong.
+- Keep test data and dependencies explicit. Reuse helpers or fixtures when they reduce real duplication, but keep behavior and assertions visible so changes stay local.
+
 ## Implement confirmed cases
 
 1. Read the affected review rows and find existing code with `TEST-MAP: <CASE-ID>`.
@@ -20,7 +26,8 @@ Explain added automation compactly. Group IDs that share the same reason and ora
 3. For PR work, inspect the base/head diff first and widen source reads only as needed.
 4. Preserve IDs when behavior remains the same. Add or remove rows only when observable behavior is added or removed.
 5. If a row changes materially, stop at the review gate before modifying mapped tests.
-6. After confirmation, update the minimum automation needed for a concrete failure mode and verify the affected scope.
+6. After confirmation, locate all corresponding test points through the affected case IDs and `TEST-MAP` comments. Synchronize inputs, setup, execution steps, and assertions with the revised cases; update mappings and scenario checkboxes as needed. For deleted, merged, or split cases, remove obsolete mappings and revise the affected tests while preserving coverage for retained behavior. For wording or priority changes only, verify alignment and explain when no code change is needed.
+7. Run the focused tests and mapping checker. Inspect assertion alignment as well: the checker validates mapping presence, not whether a test proves the revised expectation.
 
 For a previously unmapped area, return to the area-map and review gates.
 

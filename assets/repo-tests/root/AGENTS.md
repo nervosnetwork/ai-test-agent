@@ -26,6 +26,8 @@ Work on one interface or review document and one gate at a time. Do not automati
 4. Implement only confirmed cases with direct, readable tests and `TEST-MAP: <CASE-ID>` comments. Add an abstraction only when it removes meaningful repetition without hiding the assertions that prove the expected behavior.
 5. Run the focused command and `python3 scripts/check_test_map.py`. Run a broader suite only when justified; inspect CI once rather than polling it.
 
+Keep automation simple, readable, and maintainable: use clear names, explicit setup and dependencies, and diagnostic assertions; avoid speculative frameworks and excessive abstraction. Keep changes local.
+
 Split larger scopes coherently instead of omitting behavior. Group related fields proved by the same operation and oracle.
 
 ## Review rows
@@ -52,7 +54,7 @@ Read root `reviews/review-feedback.md` before revising cases. On corrective feed
 
 Preserve the wording, collapse line breaks, escape `|` as `\|`, and do not record approval without a correction. This is learning feedback, not a case status or approval ledger.
 
-Map each automated case with one nearby `TEST-MAP: <CASE-ID>` comment. Keep the scenario checkbox synchronized when mappings are added or removed. Coverage is computed from code; the checkbox is a visible projection, not a mapping ledger.
+After case changes are confirmed, synchronize test inputs, steps, assertions, and nearby `TEST-MAP: <CASE-ID>` comments. Check mappings for affected IDs; preserve retained behavior when removing obsolete tests. Keep scenario checkboxes synchronized. Mapping presence alone does not prove alignment.
 
 ## Efficiency and handoff
 
