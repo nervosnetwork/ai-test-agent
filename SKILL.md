@@ -14,6 +14,8 @@ Do not create coverage ledgers, approval statuses, or internal ID chains.
 
 ## Scope and token discipline
 
+Large PRs or projects are more prone to missed coverage when cases are generated all at once. Smaller, incremental batches can help keep the analysis thorough and omissions visible.
+
 Keep each invocation bounded:
 
 - Advance one gate for one interface, coherent behavior, or review document.
