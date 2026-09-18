@@ -46,8 +46,25 @@ def prepare(root, state):
     state.update({'cases': design['cases'], 'spec_refs': design['spec_refs'], 'design_decisions': design['needs_decision'],
                   'design_input': freeze_inputs(root, state), 'design_fingerprint': design['design_fingerprint'],
                   'stage': 'DESIGN_READY'})
-    for key in ('approval', 'coverage_input', 'final_input', 'annotation_receipt', 'coverage_adapter'):
+    for key in ('approval', 'coverage_input', 'final_input', 'annotation_receipt', 'coverage_adapter',
+                'design_adapter', 'design_review_hash', 'design_response_hash', 'design_review_report_hash'):
         state.pop(key, None)
+
+
+def validate_design_review(state, value):
+    acknowledgements = value['acknowledgements']
+    records = {item['case_id']: item for item in acknowledgements}
+    if len(records) != len(acknowledgements):
+        raise ValueError('duplicate design acknowledgement Case')
+    expected = set(state['cases'])
+    if set(records) != expected:
+        raise ValueError(f"design acknowledgement Case set mismatch: missing={sorted(expected - set(records))}, extra={sorted(set(records) - expected)}")
+    for case, item in records.items():
+        if set(item['spec_refs']) != set(state['spec_refs'][case]):
+            raise ValueError(f'{case}: acknowledged Spec references differ from selected design')
+    finding_ids = [item['finding_id'] for item in value['findings']]
+    if len(set(finding_ids)) != len(finding_ids):
+        raise ValueError('duplicate design finding ID')
 
 
 def review(root, state, reports, args):
@@ -75,7 +92,8 @@ def review(root, state, reports, args):
     write_json(reports / f'{phase}-input.json', packet)
     if args.evidence:
         value = read_json(args.evidence)
-        metadata = {'backend': 'manual', 'contract_tested': False, 'isolation': 'isolation_unverified',
+        metadata = {'backend': 'manual', 'transport_contract_tested': False, 'host_attested': False,
+                    'isolation': 'isolation_unverified',
                     'model': 'unavailable', 'session': 'unavailable'}
     elif args.backend:
         prompt = ("Independently review the selected test design against raw product diff and requirements. " if phase == 'design' else
@@ -86,9 +104,9 @@ def review(root, state, reports, args):
         value, metadata = agent_adapters.invoke(args.backend, root, schema, prompt, args.timeout, output)
         if args.contract:
             proof = read_json(args.contract)
-            if all(proof.get(k) == metadata.get(k) for k in ('backend', 'version', 'help_sha256')) and proof.get('contract_tested'):
-                metadata['contract_tested'] = True
-                metadata['isolation'] = 'contract_tested'
+            if all(proof.get(k) == metadata.get(k) for k in ('backend', 'version', 'help_sha256')) and proof.get('transport_contract_tested'):
+                metadata['transport_contract_tested'] = True
+                metadata['isolation'] = 'transport_contract_tested'
     else:
         state['stage'] = 'BLOCKED'
         raise ValueError("B unavailable: supply --backend or imported --evidence; independent review remains incomplete")
@@ -106,17 +124,48 @@ def review(root, state, reports, args):
             raise ValueError('; '.join(errors))
         state['stage'] = 'COVERAGE_REVIEWED'
     else:
+        validate_design_review(state, value)
+        state['design_review_hash'] = fingerprint(value)
         state['stage'] = 'DESIGN_REVIEWED'
-        unresolved = [f for f in value['findings'] if f['disposition'] == 'needs_decision']
-        state['design_decisions'] += [f"{f['location']}: {f['suggestion']}" for f in unresolved]
-        (reports / 'design-review.md').write_text('# Design review\n\n' + '\n'.join(
-            f"- {f['location']}: {f['suggestion']}\n  Basis: {f['basis']}\n  Impact: {f['impact']}\n  {f['disposition']}: {f['response']}" for f in value['findings']) + '\n', encoding='utf-8')
-        state['stage'] = 'WAITING_HUMAN'
     state[f'{phase}_adapter'] = metadata
     write_json(output, value)
     if phase == 'coverage':
         state['coverage_evidence_hash'] = fingerprint(value)
     write_json(reports / f'{phase}-adapter.json', metadata)
+
+
+def respond(root, state, reports, args):
+    require(state, 'DESIGN_REVIEWED')
+    if not fresh_inputs(root, state, state['design_input']):
+        state['stage'] = 'STALE'
+        raise ValueError('design review inputs changed before A response')
+    review_value = read_json(reports / 'design-review.json')
+    if fingerprint(review_value) != state['design_review_hash']:
+        raise ValueError('design review changed before A response')
+    value = read_json(args.responses)
+    validate_schema(value, read_json(SCHEMA_ROOT / 'design-response.schema.json'))
+    if value['scope'] != state['scope'] or value['input_fingerprint'] != state['design_input']['fingerprint']:
+        raise ValueError('A response refers to a different input/scope')
+    findings = {item['finding_id']: item for item in review_value['findings']}
+    responses = {item['finding_id']: item for item in value['responses']}
+    if len(responses) != len(value['responses']):
+        raise ValueError('duplicate A response finding ID')
+    if set(responses) != set(findings):
+        raise ValueError(f"A response finding set mismatch: missing={sorted(set(findings) - set(responses))}, extra={sorted(set(responses) - set(findings))}")
+    unresolved = [responses[key] for key in findings if responses[key]['disposition'] == 'needs_decision']
+    state['design_decisions'] += [f"{findings[item['finding_id']]['location']}: {item['response']}" for item in unresolved]
+    lines = []
+    for key, finding in findings.items():
+        response = responses[key]
+        lines.append(f"- {key} — {finding['location']}: {finding['suggestion']}\n"
+                     f"  Basis: {finding['basis']}\n  Impact: {finding['impact']}\n"
+                     f"  A {response['disposition']}: {response['response']}")
+    report = reports / 'design-review.md'
+    report.write_text('# Design review\n\n' + '\n'.join(lines) + '\n', encoding='utf-8')
+    write_json(reports / 'design-response.json', value)
+    state['design_response_hash'] = fingerprint(value)
+    state['design_review_report_hash'] = digest(report.read_bytes())
+    state['stage'] = 'WAITING_HUMAN'
 
 
 def annotate(root, state, reports):
@@ -173,7 +222,8 @@ def run_tests(root, state, reports, args):
     started = time.monotonic()
     # Explicit minimal environment: never forward model/production credentials to tests.
     env = {k: os.environ[k] for k in ('PATH', 'LANG', 'LC_ALL', 'TMPDIR', 'SYSTEMROOT') if k in os.environ}
-    env.update({'PYTHONDONTWRITEBYTECODE': '1', 'AI_TEST_AGENT_RESULT': str(result_path)})
+    env.update({'PYTHONDONTWRITEBYTECODE': '1', 'AI_TEST_AGENT_RESULT': str(result_path),
+                'AI_TEST_AGENT_ROOT': str(root)})
     execution = {'schema_version': VERSION, 'input_fingerprint': frozen['fingerprint'], 'command': state['command'],
                  'cwd': state['cwd'], 'product_head': frozen['product']['head'], 'environment_keys': sorted(env),
                  'level': 'suite', 'results': [], 'status': 'not_run', 'collected': 0, 'exit_code': None,
@@ -185,12 +235,24 @@ def run_tests(root, state, reports, args):
         execution['status'] = 'failed' if run.returncode else 'not_run'
         if result_path.exists():
             result = read_json(result_path)
-            if result.get('schema_version') != VERSION or not isinstance(result.get('collected'), int) or isinstance(result['collected'], bool) or result['collected'] < 0 or not isinstance(result.get('results'), list):
+            if result.get('schema_version') != VERSION or not isinstance(result.get('collected'), int) or isinstance(result['collected'], bool) or result['collected'] < 0 or not isinstance(result.get('results'), list) or not isinstance(result.get('manifest'), list):
                 raise ValueError('invalid runner collection record')
             for row in result['results']:
                 if not isinstance(row, dict) or not isinstance(row.get('selector'), str) or not row['selector'] or row.get('status') not in {'passed', 'failed', 'skipped', 'blocked', 'not_run'} or not isinstance(row.get('unstable', False), bool):
                     raise ValueError('invalid runner result')
-            execution.update({'collected': result['collected'], 'results': result['results'], 'level': 'selector'})
+            targets = {}
+            for row in result['manifest']:
+                if not isinstance(row, dict) or set(row) != {'selector', 'file', 'symbol'} or not all(isinstance(row[key], str) and row[key] for key in row):
+                    raise ValueError('invalid runner selector manifest')
+                inside(root, row['file'])
+                target = (row['file'], row['symbol'])
+                if row['selector'] in targets and targets[row['selector']] != target:
+                    raise ValueError('runner selector maps to multiple symbols')
+                targets[row['selector']] = target
+            if any(row['selector'] not in targets for row in result['results']):
+                raise ValueError('runner result missing selector manifest entry')
+            execution.update({'collected': result['collected'], 'results': result['results'],
+                              'manifest': result['manifest'], 'level': 'selector'})
             statuses = {row['status'] for row in result['results']}
             if result['collected'] > 0 and result['results']:
                 execution['status'] = 'failed' if run.returncode or 'failed' in statuses else 'skipped' if statuses == {'skipped'} else 'passed' if statuses == {'passed'} else 'not_run'
@@ -231,7 +293,7 @@ def main():
     analyze.add_argument('--cwd', default='.')
     analyze.add_argument('--scope-boundary', required=True, help='Selected slice and other unanalysed parts')
     analyze.add_argument('--max-review-calls', type=int, default=2, help='Per phase, initial review plus one revision')
-    for name in ('prepare', 'confirm', 'implemented', 'review', 'annotate', 'run', 'continue', 'retry'):
+    for name in ('prepare', 'review', 'respond', 'confirm', 'implemented', 'annotate', 'run', 'continue', 'retry'):
         sub = subs.add_parser(name)
         sub.add_argument('--scope', required=True)
         if name == 'confirm':
@@ -243,6 +305,8 @@ def main():
             sub.add_argument('--backend', choices=['codex', 'claude'])
             sub.add_argument('--evidence', type=Path)
             sub.add_argument('--contract', type=Path)
+        if name == 'respond':
+            sub.add_argument('--responses', type=Path, required=True)
         if name in ('review', 'run'):
             sub.add_argument('--timeout', type=int, default=120)
     args = parser.parse_args()
@@ -284,13 +348,16 @@ def main():
             state = read_json(state_path)
             if args.operation == 'retry':
                 require(state, 'BLOCKED')
-                if state.get('resume_from') not in {'DESIGN_READY', 'WAITING_HUMAN', 'IMPLEMENTED', 'COVERAGE_REVIEWED'}:
+                if state.get('resume_from') not in {'DESIGN_READY', 'DESIGN_REVIEWED', 'WAITING_HUMAN',
+                                                    'IMPLEMENTED', 'COVERAGE_REVIEWED'}:
                     raise ValueError('re-prepare design to recover this stage')
                 state['stage'] = state.pop('resume_from')
             elif args.operation == 'prepare':
                 prepare(root, state)
             elif args.operation == 'review':
                 review(root, state, reports, args)
+            elif args.operation == 'respond':
+                respond(root, state, reports, args)
             elif args.operation == 'confirm':
                 require(state, 'WAITING_HUMAN', 'NEEDS_DECISION')
                 if state['stage'] == 'NEEDS_DECISION' and not state.get('awaiting_human_decision'):
@@ -298,6 +365,11 @@ def main():
                 if not fresh_inputs(root, state, state['design_input']):
                     state['stage'] = 'STALE'
                     raise ValueError('design review inputs changed; prepare again before G1')
+                if (fingerprint(read_json(reports / 'design-review.json')) != state['design_review_hash']
+                        or fingerprint(read_json(reports / 'design-response.json')) != state['design_response_hash']
+                        or digest((reports / 'design-review.md').read_bytes()) != state['design_review_report_hash']):
+                    state['stage'] = 'STALE'
+                    raise ValueError('design review or A response changed; respond again before G1')
                 if state['design_decisions'] and not args.decision:
                     state['stage'] = 'NEEDS_DECISION'
                     state['awaiting_human_decision'] = True

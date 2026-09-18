@@ -24,19 +24,21 @@ python3 scripts/pr_workflow.py review --scope <scope> --phase design --backend c
 ```
 
 Repeat the contract for Claude on its actual deployed version. Contract proof is matched to backend,
-version and help fingerprint; it tests fresh explicit transport and a canary request, **not** all hidden
+version and help fingerprint; it is reported as `transport_contract_tested` and tests fresh explicit
+transport and a canary request, **not** all hidden
 host state. Unit tests also verify launch arguments and that no parent-history field enters the packet.
 A separate session is not a read-permission jail or fully independent judgment. Working files are
 shared; persistent memory/project instruction injection may remain unverified. A changed deployed CLI
 requires rechecking. Native subagents may be used interactively only with equally explicit boundaries;
 never assume every API named fork isolates history. Imported `--evidence` is marked isolation_unverified,
-even if its JSON asserts stronger guarantees. No backend means independent review incomplete.
+even if its JSON asserts stronger guarantees. `independent_review` is reserved for a trusted host
+attestation; the bundled adapters do not issue one. No backend means independent review incomplete.
 
 ## Recovery and control
 
-States: INPUT_READY → DESIGN_READY → WAITING_HUMAN → DESIGN_CONFIRMED → IMPLEMENTED →
-COVERAGE_REVIEWED → EXECUTED → READY_FOR_ACCEPTANCE. DESIGN_REVIEWED is recorded during the
-review transition; NEEDS_DECISION, BLOCKED and STALE preserve failure reasons. `continue` reports
+States: INPUT_READY → DESIGN_READY → DESIGN_REVIEWED → WAITING_HUMAN → DESIGN_CONFIRMED →
+IMPLEMENTED → COVERAGE_REVIEWED → EXECUTED → READY_FOR_ACCEPTANCE. The explicit A `respond`
+transition moves DESIGN_REVIEWED to WAITING_HUMAN; NEEDS_DECISION, BLOCKED and STALE preserve failure reasons. `continue` reports
 current results, not an automatic march past a human gate. `retry` restores a transient blocked stage;
 normal freshness checks and the bounded call count still apply. Use `prepare` for changed design inputs.
 Timeout, malformed/truncated JSON, unavailable B and budget exhaustion never become reviewed/passed.

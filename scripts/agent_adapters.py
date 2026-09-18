@@ -26,7 +26,8 @@ def probe(backend: str) -> dict:
     if help_result.returncode or version.returncode or any(flag not in help_result.stdout for flag in required):
         raise ValueError(f"{backend}: deployed CLI lacks required options")
     return {"backend": backend, "executable": executable, "version": version.stdout.strip(),
-            "help_sha256": digest(help_result.stdout.encode()), "contract_tested": False,
+            "help_sha256": digest(help_result.stdout.encode()), "transport_contract_tested": False,
+            "host_attested": False,
             "isolation": "isolation_unverified", "shared_workspace": True,
             "persistent_memory": "unverified", "project_instructions": "may be injected"}
 
@@ -91,7 +92,7 @@ def contract(backend: str, output: Path, timeout=120):
             timeout, output.with_name(output.stem + '-response.json'))
         if value != {"visible": visible, "private": "unavailable"} or private in json.dumps(value):
             raise ValueError("fresh-session canary contract failed")
-        metadata.update({"contract_tested": True, "isolation": "contract_tested",
+        metadata.update({"transport_contract_tested": True, "isolation": "transport_contract_tested",
                          "limits": "Tests explicit packet and fresh CLI launch only; hidden host state and same-user writes remain unverified."})
         write_json(output, metadata)
         return metadata

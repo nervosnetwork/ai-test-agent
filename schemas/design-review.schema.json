@@ -31,7 +31,8 @@
           "type": "string",
           "minLength": 1,
           "enum": [
-            "contract_tested",
+            "transport_contract_tested",
+            "host_attested",
             "isolation_unverified"
           ]
         }
@@ -43,11 +44,42 @@
       ],
       "additionalProperties": false
     },
+    "acknowledgements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "spec_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          }
+        },
+        "required": [
+          "case_id",
+          "spec_refs"
+        ],
+        "additionalProperties": false
+      }
+    },
     "findings": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
+          "finding_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^F-[0-9]{2,}$"
+          },
           "location": {
             "type": "string",
             "minLength": 1
@@ -63,29 +95,14 @@
           "impact": {
             "type": "string",
             "minLength": 1
-          },
-          "disposition": {
-            "type": "string",
-            "minLength": 1,
-            "enum": [
-              "accepted",
-              "duplicate",
-              "not_applicable",
-              "needs_decision"
-            ]
-          },
-          "response": {
-            "type": "string",
-            "minLength": 1
           }
         },
         "required": [
+          "finding_id",
           "location",
           "basis",
           "suggestion",
-          "impact",
-          "disposition",
-          "response"
+          "impact"
         ],
         "additionalProperties": false
       }
@@ -96,6 +113,7 @@
     "scope",
     "input_fingerprint",
     "reviewer",
+    "acknowledgements",
     "findings"
   ],
   "additionalProperties": false
