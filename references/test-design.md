@@ -22,12 +22,16 @@ need explicit blocks/Spec/tree before joining v2 design validation.
 python3 scripts/check_test_design.py --review reviews/p2p/connection-limit.md --json
 python3 scripts/pr_workflow.py prepare --scope connection-limit
 python3 scripts/pr_workflow.py review --scope connection-limit --phase design --backend codex
+python3 scripts/pr_workflow.py respond --scope connection-limit --responses reports/connection-limit/a-response.json
 ```
 
 See [agent-adapters.md](agent-adapters.md) before choosing a backend. B reads raw PR/spec/source,
-project conventions and the design independently. For each finding it supplies location, basis,
-suggestion and impact. A records accepted, duplicate, not_applicable or needs_decision, with a concrete
-response (existing Case/rule when declining). An added test point is not a confirmed product defect.
+project conventions and the design independently. B must acknowledge the exact Spec references for
+every selected Case and, for each finding, supplies an ID, location, basis, suggestion and impact.
+An empty finding list is valid only with complete Case/Spec acknowledgements. In the separate `respond`
+phase, A records accepted, duplicate, not_applicable or needs_decision for every B finding, with a
+concrete response (existing Case/rule when declining). G1 remains closed until that response set is exact.
+An added test point is not a confirmed product defect.
 A may import a structured review with `--evidence <JSON>`; imported reviews remain isolation_unverified.
 Default budget is one full review plus one targeted revision per phase, not one B per Case.
 If A changes the reviewed design, `prepare` again and review that version. Exhausted budgets never
@@ -35,7 +39,7 @@ turn critical disagreements into approval; ask the human for a new bounded scope
 
 ## G1
 
-Present change summary, Spec, tree, the **complete changed row set**, B findings and unresolved matters,
+Present change summary, Spec, tree, the **complete changed row set**, B findings, A responses and unresolved matters,
 then stop. Only after explicit human confirmation run:
 
 ```sh

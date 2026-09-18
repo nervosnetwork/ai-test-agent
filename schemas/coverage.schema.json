@@ -31,7 +31,8 @@
           "type": "string",
           "minLength": 1,
           "enum": [
-            "contract_tested",
+            "transport_contract_tested",
+            "host_attested",
             "isolation_unverified"
           ]
         }

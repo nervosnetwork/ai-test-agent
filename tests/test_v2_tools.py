@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT / 'scripts'))
 from check_test_map import build_report
 from check_test_design import check_design
 from check_test_evidence import build_evidence_report, validate_coverage, execution_for
+from pr_workflow import validate_design_review
 from evidence_annotations import render_python, verify_comments_only
 from workflow_lib import (design_hash, freeze_inputs, fresh_inputs, git, read_json, fingerprint,
                           snapshot, digest, validate_schema, write_json)
@@ -99,12 +100,13 @@ class Fixture(unittest.TestCase):
                       'command': [sys.executable, str(ROOT / 'scripts/run_unittest.py'), 'discover', '-s', 'suites/api/tests'],
                       'cwd': '.', 'product': {'root': str(self.product), 'base_tip': self.head, 'head': self.head, 'diff_base': self.head},
                       'cases': design['cases'], 'spec_refs': design['spec_refs'], 'design_decisions': [],
-                      'design_adapter': {'contract_tested': True}, 'coverage_adapter': {'contract_tested': True},
+                      'design_adapter': {'transport_contract_tested': True, 'host_attested': False},
+                      'coverage_adapter': {'transport_contract_tested': True, 'host_attested': False},
                       'stage': 'COVERAGE_REVIEWED'}
         self.state['coverage_input'] = freeze_inputs(self.root, self.state)
         self.coverage = {'schema_version': '2.0', 'scope': 'limit',
                          'input_fingerprint': self.state['coverage_input']['fingerprint'],
-                         'reviewer': {'model': 'unavailable', 'session': 'B', 'isolation': 'contract_tested'},
+                         'reviewer': {'model': 'unavailable', 'session': 'B', 'isolation': 'transport_contract_tested'},
                          'cases': [self.record('API-01', 'covered'), self.record('API-02', 'missing')]}
 
     def record(self, case, coverage):
@@ -134,15 +136,35 @@ class Fixture(unittest.TestCase):
         self.assertOK(self.workflow('prepare', '--scope', 'limit'))
         state = read_json(self.state_file())
         evidence = {'schema_version': '2.0', 'scope': 'limit', 'input_fingerprint': state['design_input']['fingerprint'],
-                    'reviewer': {'session': 'simulated B', 'model': 'unavailable', 'isolation': 'contract_tested'}, 'findings': []}
+                    'reviewer': {'session': 'simulated B', 'model': 'unavailable', 'isolation': 'transport_contract_tested'},
+                    'acknowledgements': [
+                        {'case_id': case, 'spec_refs': state['spec_refs'][case]} for case in sorted(state['cases'])
+                    ],
+                    'findings': []}
         write_json(self.root / 'design.json', evidence)
         self.assertOK(self.workflow('review', '--scope', 'limit', '--phase', 'design', '--evidence', str(self.root / 'design.json')))
+        responses = {'schema_version': '2.0', 'scope': 'limit',
+                    'input_fingerprint': state['design_input']['fingerprint'], 'responses': []}
+        write_json(self.root / 'responses.json', responses)
+        self.assertOK(self.workflow('respond', '--scope', 'limit', '--responses', str(self.root / 'responses.json')))
 
     def assertOK(self, result):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
 class DesignTests(Fixture):
+    def test_design_review_requires_exact_case_and_spec_acknowledgements(self):
+        value = {'acknowledgements': [
+            {'case_id': case, 'spec_refs': self.state['spec_refs'][case]} for case in sorted(self.state['cases'])
+        ], 'findings': []}
+        validate_design_review(self.state, value)
+        value['acknowledgements'].pop()
+        with self.assertRaisesRegex(ValueError, 'Case set mismatch'):
+            validate_design_review(self.state, value)
+        value['acknowledgements'].append({'case_id': 'API-02', 'spec_refs': ['wrong#spec']})
+        with self.assertRaisesRegex(ValueError, 'Spec references differ'):
+            validate_design_review(self.state, value)
+
     def test_explicit_blocks_exclude_spec_and_report_rows(self):
         self.review.write_text(REVIEW + '\n| `SPEC-01` | - [ ] text | a | b | P0 |\n| `API-01` | - [ ] report | a | b | P0 |\n')
         report = build_report(self.root)
@@ -223,19 +245,27 @@ class EvidenceTests(Fixture):
         self.assertEqual(report['cases'][1]['coverage'], 'missing')
         self.assertEqual(report['cases'][0]['execution'], 'not_run')
         self.assertEqual(report['result'], 'blocked')
+        self.assertTrue(report['transport_contract_tested'])
+        self.assertFalse(report['independent_review'])
 
     def test_acceptance_requires_all_dimensions_and_preserves_failure_facts(self):
         # Isolate the ready branch to one complete required Case, with script-bound execution.
         self.review.write_text(REVIEW.replace('  - API-02 [primary] -> SPEC-01: rejected\n', '').replace('| `API-02` | - [ ] limit reached | rejected without mutation | old state damaged | P1 |\n', ''))
         design = check_design(self.root, self.state['reviews'])
         self.state.update({'cases': design['cases'], 'spec_refs': design['spec_refs'], 'stage': 'EXECUTED', 'approval': {'human': 'fixture'}})
+        self.state['design_adapter']['host_attested'] = True
+        self.state['coverage_adapter']['host_attested'] = True
         self.state['coverage_input'] = freeze_inputs(self.root, self.state)
         self.coverage['cases'] = self.coverage['cases'][:1]
+        self.coverage['reviewer']['isolation'] = 'host_attested'
         self.coverage['input_fingerprint'] = self.state['coverage_input']['fingerprint']
         log = put(self.root, 'reports/limit/execution.log', 'Ran 1 test\nOK\n')
         execution = {'input_fingerprint': self.coverage['input_fingerprint'], 'collected': 1,
                      'status': 'passed', 'exit_code': 0, 'level': 'selector',
                      'output_file': 'reports/limit/execution.log', 'output_sha256': digest(log.read_bytes()),
+                     'manifest': [{'selector': 'test_admission.Admission.test_valid',
+                                   'file': 'suites/api/tests/test_admission.py',
+                                   'symbol': 'Admission.test_valid'}],
                      'results': [{'selector': 'test_admission.Admission.test_valid', 'status': 'passed'}]}
         report = build_evidence_report(self.root, self.state, self.coverage, execution)
         self.assertEqual(report['result'], 'ready_for_acceptance')
@@ -320,11 +350,19 @@ class EvidenceTests(Fixture):
         item = self.coverage['cases'][0]
         fp = 'fixed'
         execution = {'input_fingerprint': fp, 'collected': 1, 'status': 'passed', 'results': [
-            {'selector': 'test_admission.Admission.test_valid', 'status': 'passed'}]}
+            {'selector': 'test_admission.Admission.test_valid', 'status': 'passed'}],
+            'manifest': [{'selector': 'test_admission.Admission.test_valid',
+                          'file': 'suites/api/tests/test_admission.py',
+                          'symbol': 'Admission.test_valid'}]}
         self.assertEqual(execution_for(item, execution, fp), ('passed', False))
+        execution['manifest'][0]['symbol'] = 'Admission.test_other'
+        self.assertEqual(execution_for(item, execution, fp), ('not_run', False))
+        execution['manifest'][0]['symbol'] = 'Admission.test_valid'
         item['bindings'][0]['parameters'] = ['test_valid (n=1)', 'test_valid (n=2)']
         self.assertEqual(execution_for(item, execution, fp), ('not_run', False))
         execution['results'] = [{'selector': p, 'status': 'passed'} for p in item['bindings'][0]['parameters']]
+        execution['manifest'] = [{'selector': p, 'file': 'suites/api/tests/test_admission.py',
+                                  'symbol': 'Admission.test_valid'} for p in item['bindings'][0]['parameters']]
         self.assertEqual(execution_for(item, execution, fp), ('passed', False))
         execution['results'].append(execution['results'][0])
         self.assertEqual(execution_for(item, execution, fp), ('passed', True))
@@ -383,6 +421,37 @@ class AnnotationTests(Fixture):
 
 
 class WorkflowTests(Fixture):
+    def test_g1_waits_for_a_response_to_every_b_finding(self):
+        self.analyze()
+        self.assertOK(self.workflow('prepare', '--scope', 'limit'))
+        state = read_json(self.state_file())
+        evidence = {
+            'schema_version': '2.0', 'scope': 'limit',
+            'input_fingerprint': state['design_input']['fingerprint'],
+            'reviewer': {'session': 'B', 'model': 'unavailable', 'isolation': 'isolation_unverified'},
+            'acknowledgements': [
+                {'case_id': case, 'spec_refs': state['spec_refs'][case]} for case in sorted(state['cases'])
+            ],
+            'findings': [{'finding_id': 'F-01', 'location': 'API-01', 'basis': 'SPEC-01',
+                          'suggestion': 'clarify setup', 'impact': 'ambiguous precondition'}],
+        }
+        write_json(self.root / 'design.json', evidence)
+        self.assertOK(self.workflow('review', '--scope', 'limit', '--phase', 'design',
+                                    '--evidence', str(self.root / 'design.json')))
+        self.assertEqual(read_json(self.state_file())['stage'], 'DESIGN_REVIEWED')
+        responses = {'schema_version': '2.0', 'scope': 'limit',
+                     'input_fingerprint': state['design_input']['fingerprint'], 'responses': []}
+        write_json(self.root / 'responses.json', responses)
+        self.assertEqual(self.workflow('respond', '--scope', 'limit', '--responses',
+                                       str(self.root / 'responses.json')).returncode, 1)
+        self.assertOK(self.workflow('retry', '--scope', 'limit'))
+        responses['responses'] = [{'finding_id': 'F-01', 'disposition': 'accepted',
+                                   'response': 'A will clarify the setup'}]
+        write_json(self.root / 'responses.json', responses)
+        self.assertOK(self.workflow('respond', '--scope', 'limit', '--responses',
+                                    str(self.root / 'responses.json')))
+        self.assertEqual(read_json(self.state_file())['stage'], 'WAITING_HUMAN')
+
     def test_unconfirmed_implementation_and_wrong_phase_are_blocked(self):
         self.analyze()
         result = self.workflow('implemented', '--scope', 'limit')
@@ -429,6 +498,16 @@ class WorkflowTests(Fixture):
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(read_json(self.state_file())['stage'], 'STALE')
 
+    def test_g1_rejects_changed_a_response_artifacts(self):
+        self.advance_design()
+        response = self.root / 'reports/limit/design-response.json'
+        value = read_json(response)
+        value['responses'].append({'finding_id': 'F-99', 'disposition': 'accepted', 'response': 'tampered'})
+        write_json(response, value)
+        result = self.workflow('confirm', '--scope', 'limit', '--human', 'fixture', '--confirmation', 'approved')
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(read_json(self.state_file())['stage'], 'STALE')
+
     def full_coverage(self):
         self.advance_design()
         self.assertOK(self.workflow('confirm', '--scope', 'limit', '--human', 'fixture', '--confirmation', 'approved'))
@@ -452,6 +531,7 @@ class WorkflowTests(Fixture):
         self.assertEqual(execution['exit_code'], 0)
         self.assertEqual(execution['collected'], 1)
         self.assertEqual(execution['results'][0]['selector'], 'test_admission.Admission.test_valid')
+        self.assertEqual(execution['manifest'][0]['symbol'], 'Admission.test_valid')
         self.assertOK(self.workflow('continue', '--scope', 'limit'))
         acceptance = read_json(self.root / 'reports/limit/acceptance.json')
         self.assertEqual(acceptance['cases'][0]['execution'], 'passed')
@@ -557,6 +637,14 @@ class RunnerTests(Fixture):
         self.assertIn('test_admission.Admission.test_valid (n=1)', ids)
         self.assertIn('test_admission.Admission.test_valid (n=2)', ids)
 
+    def test_inherited_test_manifest_uses_defining_symbol(self):
+        code = CODE + '\nclass Derived(Admission):\n    pass\n'
+        run, result = self.run_native(code)
+        self.assertEqual(run.returncode, 0)
+        derived = next(row for row in result['manifest'] if row['selector'].startswith('test_admission.Derived.'))
+        self.assertEqual(derived['symbol'], 'Admission.test_valid')
+        self.assertEqual(derived['file'], 'suites/api/tests/test_admission.py')
+
 
 class MigrationTests(Fixture):
     def test_preview_apply_idempotence_and_rollback_preserve_reviews_and_custom_prose(self):
@@ -643,7 +731,7 @@ class AdapterTests(unittest.TestCase):
             with patch('agent_adapters.shutil.which', return_value=str(fake)):
                 value, metadata = agent_adapters.invoke('codex', root, schema, 'Explicit B-only packet', 5, root / 'out.json')
             self.assertEqual(value, {'ok': True})
-            self.assertFalse(metadata['contract_tested'])
+            self.assertFalse(metadata['transport_contract_tested'])
             self.assertEqual(metadata['isolation'], 'isolation_unverified')
             self.assertEqual(metadata['exit_code'], 0)
 

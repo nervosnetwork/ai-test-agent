@@ -74,7 +74,15 @@ def execution_for(item: dict, execution: dict | None, fingerprint: str):
     if execution.get("status") == "blocked":
         return "blocked", False
     results = execution.get("results", [])
-    wanted = {selector for b in item.get("bindings", []) for selector in (b["parameters"] or [b["runner_selector"]])}
+    manifest = execution.get("manifest", [])
+    wanted = set()
+    for binding in item.get("bindings", []):
+        selectors = set(binding["parameters"] or [binding["runner_selector"]])
+        wanted.update(selectors)
+        for selector in selectors:
+            targets = {(row.get("file"), row.get("symbol")) for row in manifest if row.get("selector") == selector}
+            if targets != {(binding["file"], binding["symbol"])}:
+                return "not_run", False
     if not wanted:
         return "not_run", False
     matched = [row for row in results if row.get("selector") in wanted]
@@ -146,13 +154,25 @@ def build_evidence_report(root: Path, state: dict, coverage=None, execution=None
             issues.append("unstable")
         rows.append({"case_id": case, "mapped": mapped, "coverage": coverage_status, "validity": version,
                      "execution": status, "unstable": unstable, "priority": definition["priority"], "issues": issues})
-    independent = bool(coverage and coverage.get("reviewer", {}).get("isolation") == "contract_tested" and state.get("coverage_adapter", {}).get("contract_tested") and state.get("design_adapter", {}).get("contract_tested"))
+    transport_tested = bool(
+        coverage
+        and coverage.get("reviewer", {}).get("isolation") in {"transport_contract_tested", "host_attested"}
+        and state.get("coverage_adapter", {}).get("transport_contract_tested")
+        and state.get("design_adapter", {}).get("transport_contract_tested")
+    )
+    independent = bool(
+        coverage
+        and coverage.get("reviewer", {}).get("isolation") == "host_attested"
+        and state.get("coverage_adapter", {}).get("host_attested")
+        and state.get("design_adapter", {}).get("host_attested")
+    )
     required = set(state["required_cases"]) | {case for case, d in state["cases"].items() if d["priority"] == "P0"}
     required_gap = any(row["case_id"] in required and (row["coverage"] != "covered" or row["validity"] != "current" or row["execution"] != "passed" or row["unstable"]) for row in rows)
     any_gap = any(row["coverage"] != "covered" or row["validity"] != "current" or row["execution"] != "passed" or row["unstable"] for row in rows)
     gates_complete = bool(state.get("approval")) and state.get("stage") in {"EXECUTED", "READY_FOR_ACCEPTANCE"}
     decision = "blocked" if errors or required_gap else "needs_decision" if any_gap or not independent or state.get("design_decisions") or not gates_complete else "ready_for_acceptance"
-    return {"schema_version": "2.0", "scope": state["scope"], "result": decision, "independent_review": independent,
+    return {"schema_version": "2.0", "scope": state["scope"], "result": decision,
+            "transport_contract_tested": transport_tested, "independent_review": independent,
             "errors": errors, "cases": rows, "scope_boundary": state["scope_boundary"],
             "execution_level": execution.get("level", "none") if execution else "none"}
 
@@ -162,7 +182,8 @@ def render_report(report: dict, coverage=None) -> str:
         return str(value).replace("|", "\\|").replace("\n", " ")
     lines = [f"# Coverage: {report['scope']}", "", f"Result: **{report['result']}**", "",
              f"Scope boundary: {report['scope_boundary']}",
-             f"Independent review contract tested: {report['independent_review']}",
+             f"Transport contract tested: {report['transport_contract_tested']}",
+             f"Independent review host-attested: {report['independent_review']}",
              f"Execution association: {report['execution_level']}", "",
              "| Case | Mapping | B coverage | Evidence | Execution | Action / limitations |", "| --- | --- | --- | --- | --- | --- |"]
     for row in sorted(report["cases"], key=lambda x: (not bool(x["issues"]), x["case_id"])):

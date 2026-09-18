@@ -55,8 +55,9 @@ or patch product code merely to make the result green.
 
 The command/cwd are fixed in the manifest. Tests receive a minimal environment without model keys,
 production secrets or real wallet assets. Add a project-specific isolated runner for extra environment
-needs. The bundled `run_unittest.py` records exact native test IDs and subtest parameter selectors to
-`AI_TEST_AGENT_RESULT`; other commands without a supported result record remain suite-level.
+needs. The bundled `run_unittest.py` records exact native test IDs and subtest parameter selectors plus
+a runner-produced selector-to-file/symbol manifest to `AI_TEST_AGENT_RESULT`; per-Case credit requires
+that manifest to match B's reviewed binding. Other commands without a supported result record remain suite-level.
 No per-Case pass is inferred from process exit 0. Zero collection, all skips, timeout, parsing errors,
 missing selectors, input mutation and unstable duplicate outcomes do not count as acceptance.
 Full output, command, environment key names, product revision, duration and exit status are saved.
