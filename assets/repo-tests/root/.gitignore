@@ -1,2 +1,5 @@
 /source/*
 !/source/README.md
+/reports/
+/.ai-test-agent/
+__pycache__/

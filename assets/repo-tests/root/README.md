@@ -19,3 +19,15 @@ Work on one review document at a time: present changed rows, stop for confirmati
 python3 scripts/check_test_map.py
 python3 scripts/check_test_map.py --require-complete  # only for intentionally complete scope
 ```
+
+## PR v2
+
+Keep change summary, Spec and test tree with the unique Case table. Independent B reviews design
+before human confirmation, then actual test assertions before final execution. Start with
+`docs/ai-test-agent/pr-analysis.md`. Current derived reports go in ignored `reports/<scope>/`;
+input/gate state goes in ignored `.ai-test-agent/current/<scope>/`. No automatic product merge.
+
+```bash
+python3 scripts/check_test_design.py --review reviews/<area>/<behavior>.md
+python3 scripts/check_test_evidence.py --scope <scope> --require-reviewed
+```
