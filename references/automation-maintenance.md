@@ -23,7 +23,7 @@ Explain added automation compactly. Group IDs that share the same reason and ora
 
 1. Read root `AGENTS.md`, the affected review document, relevant feedback, and mapped tests.
 2. Resolve and reuse the declared source checkout.
-3. For PR work, inspect the base/head diff first and widen source reads only as needed.
+3. For PR work, first follow [pr-analysis.md](pr-analysis.md) to fix both repository inputs; inspect the selected diff and widen reads only as needed.
 4. Preserve IDs when behavior remains the same. Add or remove rows only when observable behavior is added or removed.
 5. If a row changes materially, stop at the review gate before modifying mapped tests.
 6. After confirmation, locate all corresponding test points through the affected case IDs and `TEST-MAP` comments. Synchronize inputs, setup, execution steps, and assertions with the revised cases; update mappings and scenario checkboxes as needed. For deleted, merged, or split cases, remove obsolete mappings and revise the affected tests while preserving coverage for retained behavior. For wording or priority changes only, verify alignment and explain when no code change is needed.
@@ -44,3 +44,12 @@ Next gate: <review confirmation or implementation action>
 ```
 
 Omit irrelevant fields. Passing tests support the identified behavior but do not prove unknown risks absent.
+
+## PR-v2 continuation
+
+After G1, keep the implementation rules above, then follow [coverage-review.md](coverage-review.md).
+Freeze A implementation, ask independent B for complete selected-Case evidence, render supported
+comments from that evidence, freeze the final snapshot and execute. Report mapping, B judgment,
+freshness and execution separately. Changed design returns to G1; changed helpers/fixtures/config
+return to B. Legacy unchanged reviews may continue the original mapping-only workflow, never
+represented as independently reviewed merely because their checkboxes are checked.

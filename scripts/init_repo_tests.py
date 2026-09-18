@@ -232,24 +232,17 @@ def main() -> int:
         replaced=replaced,
         skipped=skipped,
     )
-    write_file(
-        output / "templates" / "test-review.md",
-        review_template.read_text(encoding="utf-8"),
-        force=args.force,
-        created=created,
-        replaced=replaced,
-        skipped=skipped,
-    )
-    checker_output = output / "scripts" / "check_test_map.py"
-    write_file(
-        checker_output,
-        mapping_checker.read_text(encoding="utf-8"),
-        force=args.force,
-        created=created,
-        replaced=replaced,
-        skipped=skipped,
-    )
-    checker_output.chmod(0o755)
+    # Keep generated runtime self-contained; never update an installed copy implicitly.
+    for folder in ("templates", "schemas", "scripts", "references"):
+        for source in sorted((skill_root / folder).glob("*")):
+            if not source.is_file() or source.name in {"init_repo_tests.py", "migrate_repo_tests.py"}:
+                continue
+            destination = "docs/ai-test-agent" if folder == "references" else folder
+            target = output / destination / source.name
+            write_file(target, source.read_text(encoding="utf-8"), force=args.force,
+                       created=created, replaced=replaced, skipped=skipped)
+            if folder == "scripts":
+                target.chmod(0o755)
 
     for suite, metadata in suite_specs:
         code_dirs = metadata["code_dirs"]
