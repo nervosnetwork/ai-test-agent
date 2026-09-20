@@ -16,6 +16,12 @@ Case ID is also Test Point ID. Do not introduce TC IDs, internal ID chains, hand
 
 Advance one gate for one interface, coherent behavior or review document. Do not automatically continue to the next interface, area, document or PR. Slice large changes by observable behavior; identify unanalysed branches explicitly. A partial slice is not whole-PR acceptance.
 
+Scope limits breadth, not test-tree depth. For a large diff or whole project, retain a hierarchical
+overview and recursively expand the selected branch until its leaves are independently testable
+behaviors. Do not stop at a module/function list or flatten distinct states and outcomes into one
+case to save tokens. Read [references/test-design.md](references/test-design.md#recursive-decomposition)
+for split/stop rules; budget exhaustion leaves an explicit resume point, not a completed branch.
+
 - Read nearest project instructions, selected reviews, root corrective feedback, mapped tests and only relevant source/diff ranges.
 - Locate before reading; avoid repository dumps and repeated unchanged reads. Recover from current files after compaction.
 - Group related fields proved by the same operation and oracle; do not inflate case counts.

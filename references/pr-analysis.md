@@ -3,6 +3,10 @@
 Keep the skill's reviewer-first gates. Reuse the product checkout; never overwrite a conflicting path.
 For large PRs, present a change overview and select one observable-behavior slice. Label other slices
 and cross-boundary effects unanalysed. Whole-PR acceptance requires aggregation, not renaming a slice.
+Keep that overview hierarchical and recursively expand the selected slice using
+[test-design.md](test-design.md#recursive-decomposition). A large diff is not a reason to flatten
+states, conditions and distinct outcomes into first-level cases. Preserve unfinished branches with
+specific missing evidence and resume points; scope selection limits breadth, not depth.
 
 Fix both repositories: product PR, base tip, head, merge-base/diff base; test-project revision,
 selected reviews and Case set, uncommitted tests, shared helpers/fixtures, build/runner config,

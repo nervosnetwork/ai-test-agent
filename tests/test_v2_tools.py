@@ -196,6 +196,36 @@ class DesignTests(Fixture):
         self.assertEqual(result['errors'], [])
         self.assertEqual(result['spec_refs']['API-01'], ['reviews/api/limit.md#spec-01'])
 
+    def test_tree_depth_is_unbounded_and_preserves_case_identity(self):
+        baseline = check_design(self.root, self.state['reviews'])
+        # Simple branches stay shallow; complex ones may continue beyond template depth.
+        for levels in (1, 3, 6):
+            with self.subTest(levels=levels):
+                parents = ''.join('  ' * depth + '- state condition\n'
+                                  for depth in range(1, levels + 1))
+                leaf = '  ' * (levels + 1) + '- API-02 [primary] -> SPEC-01: rejected\n'
+                self.review.write_text(REVIEW.replace(
+                    '  - API-02 [primary] -> SPEC-01: rejected\n', parents + leaf))
+                result = check_design(self.root, self.state['reviews'])
+                self.assertEqual(result['errors'], [])
+                self.assertEqual(set(result['cases']), set(baseline['cases']))
+                self.assertEqual(result['spec_refs'], baseline['spec_refs'])
+        self.review.write_text(REVIEW)
+        self.assertEqual(check_design(self.root, self.state['reviews'])['errors'], [])
+
+    def test_nested_frontier_requires_reason_and_stays_unresolved(self):
+        frontier = ('  - downstream effects\n'
+                    '    - retry state\n'
+                    '      - [unanalysed] restart — unread storage contract; next: storage.py\n')
+        self.review.write_text(REVIEW.replace('<!-- TEST-TREE-END -->', frontier + '<!-- TEST-TREE-END -->'))
+        result = check_design(self.root, self.state['reviews'])
+        self.assertEqual(result['errors'], [])
+        self.assertTrue(any('next: storage.py' in item for item in result['needs_decision']))
+        self.review.write_text(self.review.read_text().replace(
+            '[unanalysed] restart — unread storage contract; next: storage.py', 'restart'))
+        self.assertTrue(any('unexplained leaf branch' in item for item in
+                            check_design(self.root, self.state['reviews'])['errors']))
+
     def test_dangling_orphan_duplicate_primary_and_missing_spec_fail(self):
         mutations = [('API-02 [primary]', 'API-99 [primary]'),
                      ('API-01 [ref]', 'API-01 [primary]'),

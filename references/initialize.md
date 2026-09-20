@@ -17,12 +17,12 @@ Initialization has three conversational gates. Complete only the current gate.
    ```
 
 4. Fill stable target facts in root `AGENTS.md`.
-5. Replace `reviews/README.md` with a concise area map: responsibility, boundary, entry points, observable outcomes, and planned review paths.
+5. Replace `reviews/README.md` with a concise hierarchical area map: responsibility, boundary, entry points, observable outcomes, and planned review paths. Split broad areas into coherent capabilities/behavior groups rather than a flat module list. Follow the overview rules in [test-design.md](test-design.md#recursive-decomposition); mark unread branches with reasons and next entry points. This is a navigation map, not completed test coverage; keep Case rows for Gate 2.
 6. Present the map and stop. Do not create review rows or tests.
 
 ## Gate 2: review cases
 
-After map confirmation, select one coherent review document and follow `review-cases.md`. Stop after presenting the changed rows.
+After map confirmation, select one coherent review document and follow `review-cases.md` and the recursive decomposition in `test-design.md`. Expand its branches to independently testable leaves; selection limits breadth, not depth. Preserve unfinished frontier nodes for continuation. Stop after presenting the changed rows.
 
 ## Gate 3: automation
 

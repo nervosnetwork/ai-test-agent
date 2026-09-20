@@ -15,6 +15,9 @@ Canonical project instructions; CLAUDE.md delegates here.
 ## Workflow
 
 One interface/document and one gate at a time. Do not advance to the next area automatically.
+Scope limits breadth, not test-tree depth. For project/diff design, follow recursive split/stop rules
+in `docs/ai-test-agent/test-design.md`. Expand selected branches to testable leaves; preserve unfinished
+nodes with reasons and resume points.
 
 1. For PRs, read `docs/ai-test-agent/pr-analysis.md` and `test-design.md`. Fix both repositories,
    raw requirements/diff, scope, dependencies and command. Write change summary, sourced Spec,
