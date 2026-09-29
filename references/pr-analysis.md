@@ -7,6 +7,9 @@ Keep that overview hierarchical and recursively expand the selected slice using
 [test-design.md](test-design.md#recursive-decomposition). A large diff is not a reason to flatten
 states, conditions and distinct outcomes into first-level cases. Preserve unfinished branches with
 specific missing evidence and resume points; scope selection limits breadth, not depth.
+The complete frozen diff remains B's coverage denominator even for a slice: each change needs a Spec
+mapping, a justified non-behavior disposition, or a visible gap/exclusion. Selecting fewer Cases must
+not remove changes from the diff inventory. See `test-design.md` for the diff→Spec gate.
 
 Fix both repositories: product PR, base tip, head, merge-base/diff base; test-project revision,
 selected reviews and Case set, uncommitted tests, shared helpers/fixtures, build/runner config,

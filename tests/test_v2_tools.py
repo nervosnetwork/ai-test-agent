@@ -100,6 +100,7 @@ class Fixture(unittest.TestCase):
                       'command': [sys.executable, str(ROOT / 'scripts/run_unittest.py'), 'discover', '-s', 'suites/api/tests'],
                       'cwd': '.', 'product': {'root': str(self.product), 'base_tip': self.head, 'head': self.head, 'diff_base': self.head},
                       'cases': design['cases'], 'spec_refs': design['spec_refs'], 'design_decisions': [],
+                      'all_spec_refs': design['all_spec_refs'], 'diff_inventory': [],
                       'design_adapter': {'transport_contract_tested': True, 'host_attested': False},
                       'coverage_adapter': {'transport_contract_tested': True, 'host_attested': False},
                       'stage': 'COVERAGE_REVIEWED'}
@@ -140,7 +141,7 @@ class Fixture(unittest.TestCase):
                     'acknowledgements': [
                         {'case_id': case, 'spec_refs': state['spec_refs'][case]} for case in sorted(state['cases'])
                     ],
-                    'findings': []}
+                    'findings': [], 'diff_coverage': []}
         write_json(self.root / 'design.json', evidence)
         self.assertOK(self.workflow('review', '--scope', 'limit', '--phase', 'design', '--evidence', str(self.root / 'design.json')))
         responses = {'schema_version': '2.0', 'scope': 'limit',
@@ -156,7 +157,7 @@ class DesignTests(Fixture):
     def test_design_review_requires_exact_case_and_spec_acknowledgements(self):
         value = {'acknowledgements': [
             {'case_id': case, 'spec_refs': self.state['spec_refs'][case]} for case in sorted(self.state['cases'])
-        ], 'findings': []}
+        ], 'findings': [], 'diff_coverage': []}
         validate_design_review(self.state, value)
         value['acknowledgements'].pop()
         with self.assertRaisesRegex(ValueError, 'Case set mismatch'):
@@ -462,6 +463,7 @@ class WorkflowTests(Fixture):
             'acknowledgements': [
                 {'case_id': case, 'spec_refs': state['spec_refs'][case]} for case in sorted(state['cases'])
             ],
+            'diff_coverage': [],
             'findings': [{'finding_id': 'F-01', 'location': 'API-01', 'basis': 'SPEC-01',
                           'suggestion': 'clarify setup', 'impact': 'ambiguous precondition'}],
         }

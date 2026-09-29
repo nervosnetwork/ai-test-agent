@@ -20,7 +20,7 @@ Scope limits breadth, not test-tree depth; see `docs/ai-test-agent/test-design.m
 1. For PRs, read `docs/ai-test-agent/pr-analysis.md` and `test-design.md`. Fix both repositories,
    raw requirements/diff, scope, dependencies and command. Write change summary, sourced Spec,
    Markdown tree and cases in the same root review. Mark unanalysed branches.
-2. Independent B reviews raw inputs and acknowledges every selected Case/Spec before G1. B reports
+2. Independent B checks diff→Spec completeness and acknowledges every selected Case/Spec before G1. B reports
    findings without dispositions; A responds to every finding in a separate phase. Present all changed
    rows, responses and unresolved matters; stop before changing automated tests. Wait for explicit human confirmation.
 3. Implement only confirmed Cases as direct, readable tests with nearby `TEST-MAP` comments.

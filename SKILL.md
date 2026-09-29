@@ -60,8 +60,10 @@ A analyzes and implements. B independently reviews original inputs and actual co
 
 1. Fix product base/head/merge-base, raw materials, test-project revision, relevant workspace files, scope and command. Read [references/pr-analysis.md](references/pr-analysis.md).
 2. Write change explanation and sourced Spec, then Markdown tree and cases in one review document. Read
-   [references/test-design.md](references/test-design.md). B acknowledges every selected Case/Spec and
-   reports findings; A responds to every finding in a separate phase before G1. One full review plus at
+   [references/test-design.md](references/test-design.md). B checks the complete raw diff → Spec mapping,
+   then acknowledges every selected Case/Spec and reports findings. Missing or unread diff coverage
+   blocks G1; exclusions require a human scope decision, not a whole-diff coverage claim.
+   A responds to every finding in a separate phase before G1. One full review plus at
    most one revision by default.
 3. After G1, A implements direct, readable tests. Prefer native runners and existing fixtures over unnecessary abstraction; assertions must prove the expected behavior. Never weaken expectations or modify product code just to pass.
 4. B checks every selected Case, including absent automation. Read [references/coverage-review.md](references/coverage-review.md). Render reports and supported managed comments from the same evidence; freeze the final snapshot before execution.
