@@ -63,6 +63,7 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Print a machine-readable JSON report",
     )
+    parser.add_argument("--review", action="append", default=[], help="Selected review path; repeatable")
     return parser.parse_args()
 
 
@@ -101,21 +102,55 @@ def code_files(root: Path) -> list[Path]:
     return sorted(files)
 
 
+def review_rows(path: Path):
+    """Explicit v2 blocks exclude Spec/report tables; unmarked v1 stays compatible."""
+    text = path.read_text(encoding="utf-8")
+    explicit = "<!-- TEST-CASES-BEGIN -->" in text
+    active, fenced = not explicit, False
+    for number, line in enumerate(text.splitlines(), 1):
+        if line.lstrip().startswith(("```", "~~~")):
+            fenced = not fenced
+        if fenced:
+            continue
+        if line.strip() == "<!-- TEST-CASES-BEGIN -->":
+            active = True
+            continue
+        if line.strip() == "<!-- TEST-CASES-END -->":
+            active = False
+            continue
+        match = REVIEW_ROW.match(line) if active else None
+        if match:
+            yield number, line, match
+
+
+def selected_reviews(root: Path, reviews: list[str] | None = None) -> list[Path]:
+    available = review_files(root)
+    if not reviews:
+        return available
+    selected = []
+    for name in reviews:
+        path = (root / name).resolve()
+        original = next((candidate for candidate in available if candidate.resolve() == path), None)
+        if original is None:
+            raise ValueError(f"not a review document: {name}")
+        if original not in selected:
+            selected.append(original)
+    return sorted(selected)
+
+
 def collect_review_cases(
-    root: Path,
+    root: Path, paths: list[Path] | None = None,
 ) -> tuple[dict[str, list[str]], dict[str, list[tuple[str, bool | None]]]]:
     found: dict[str, list[str]] = defaultdict(list)
     markers: dict[str, list[tuple[str, bool | None]]] = defaultdict(list)
-    for path in review_files(root):
-        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-            match = REVIEW_ROW.match(line)
-            if match:
-                case = match.group("case")
-                place = location(path, number, root)
-                checkbox = TASK_CHECKBOX.match(match.group("scenario"))
-                checked = None if checkbox is None else checkbox.group("state").lower() == "x"
-                found[case].append(place)
-                markers[case].append((place, checked))
+    for path in review_files(root) if paths is None else paths:
+        for number, _, match in review_rows(path):
+            case = match.group("case")
+            place = location(path, number, root)
+            checkbox = TASK_CHECKBOX.match(match.group("scenario"))
+            checked = None if checkbox is None else checkbox.group("state").lower() == "x"
+            found[case].append(place)
+            markers[case].append((place, checked))
     return dict(found), dict(markers)
 
 
@@ -132,14 +167,15 @@ def collect_test_maps(root: Path) -> dict[str, list[str]]:
     return dict(found)
 
 
-def build_report(root: Path) -> dict[str, object]:
+def build_report(root: Path, selected: list[str] | None = None) -> dict[str, object]:
     reviews, markers = collect_review_cases(root)
     mappings = collect_test_maps(root)
-    review_ids = set(reviews)
+    review_ids = set(collect_review_cases(root, selected_reviews(root, selected))[0])
+    all_review_ids = set(reviews)
     mapped_ids = set(mappings)
     automated = sorted(review_ids & mapped_ids)
     unautomated = sorted(review_ids - mapped_ids)
-    orphan = sorted(mapped_ids - review_ids)
+    orphan = sorted(mapped_ids - all_review_ids)
     duplicate_reviews = {case: places for case, places in sorted(reviews.items()) if len(places) > 1}
     multiple_mappings = {case: places for case, places in sorted(mappings.items()) if len(places) > 1}
     missing_markers = {
@@ -209,7 +245,10 @@ def main() -> int:
     root = args.root.expanduser().resolve()
     if not root.is_dir():
         raise SystemExit(f"test-project root is not a directory: {root}")
-    report = build_report(root)
+    try:
+        report = build_report(root, args.review)
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
     else:

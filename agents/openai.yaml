@@ -1,4 +1,4 @@
 interface:
   display_name: "AI Test Agent"
-  short_description: "Review test intent before mapped automation"
-  default_prompt: "Use $ai-test-agent for one interface and one review gate at a time. Propose concise cases and stop for confirmation; then implement only confirmed IDs as direct TEST-MAP tests with focused verification."
+  short_description: "Review PR intent, test trees and assertion evidence"
+  default_prompt: "Use $ai-test-agent for one scope and gate: explain the PR, build Spec/test tree and B design review, stop for confirmation, then implement direct TEST-MAP tests and have B review evidence before focused execution."

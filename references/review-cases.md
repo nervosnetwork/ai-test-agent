@@ -10,7 +10,7 @@ Use `templates/test-review.md`. Summarize genuine N/A decisions or unresolved be
 
 Prefix every scenario cell with `- [ ]` for a case without mapped automation or `- [x]` for a case with a matching `TEST-MAP` comment. New review rows start unchecked; change the marker only when mapped test code is added or removed.
 
-A convincing review lets the leader see how requirements, changed behaviors, and relevant risks correspond to case IDs and concrete expected results, why this supports coverage of the stated scope, and which gaps or uninspected areas remain. This explanation fits the existing review context; no additional checklist, ledger, or review gate is needed.
+A convincing review lets the leader see how requirements, changed behaviors, and relevant risks correspond to case IDs and concrete expected results, why this supports coverage of the stated scope, and which gaps or uninspected areas remain. For PR-v2, place this explanation in sourced Spec and a Markdown test tree before the same five-column table. Follow [test-design.md](test-design.md) for independent B review before the existing G1; do not add a duplicate Case ledger.
 
 ## Corrective feedback
 
