@@ -68,6 +68,19 @@ class ProjectGeneratorTests(unittest.TestCase):
                 "| `[AREA-01]` | - [ ] ",
                 (output / "templates" / "test-review.md").read_text(),
             )
+            # Generated projects must receive the depth guidance, not just the installed Skill.
+            design = (output / "docs/ai-test-agent/test-design.md").read_text()
+            self.assertEqual(design, (ROOT / "references/test-design.md").read_text())
+            self.assertIn("## Recursive decomposition", design)
+            self.assertIn("### Depth review before G1", design)
+            self.assertIn("Scope limits breadth, not test-tree depth", (output / "AGENTS.md").read_text())
+            template = (output / "templates/test-review.md").read_text()
+            self.assertEqual(template, (ROOT / "templates/test-review.md").read_text())
+            # The example demonstrates nested, unequal-depth branches, not a mandatory minimum.
+            leaves = [line for line in template.splitlines() if "[primary] ->" in line]
+            depths = {len(line) - len(line.lstrip()) for line in leaves}
+            self.assertGreater(len(depths), 1)
+            self.assertGreater(max(depths), 2)
 
             with (output / "README.md").open("a", encoding="utf-8") as handle:
                 handle.write("\nsentinel\n")
