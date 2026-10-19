@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 from check_test_map import build_report
 from check_test_design import check_design
-from check_test_evidence import build_evidence_report, validate_coverage, execution_for
+from check_test_evidence import build_evidence_report, validate_coverage, execution_for, render_report
 from pr_workflow import validate_design_review
 from evidence_annotations import render_python, verify_comments_only
 from workflow_lib import (design_hash, freeze_inputs, fresh_inputs, git, read_json, fingerprint,
@@ -151,6 +151,60 @@ class Fixture(unittest.TestCase):
 
     def assertOK(self, result):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
+class CompactReportTests(Fixture):
+    def test_compact_report_preserves_every_case_status_and_limitation(self):
+        self.coverage['cases'][0]['limitations'] = ['manual check | pending\noperator']
+        report = build_evidence_report(self.root, self.state, self.coverage)
+        before = copy.deepcopy((report, self.coverage))
+        compact = render_report(report, self.coverage)
+        detailed = render_report(report, self.coverage, details=True)
+        for row in report['cases']:
+            rendered = next(line for line in compact.splitlines() if line.startswith('| ' + row['case_id'] + ' |'))
+            for value in (str(row['mapped']), row['coverage'], row['validity'], row['execution']):
+                self.assertIn(value, rendered)
+        self.assertIn(r'manual check \| pending operator', compact)
+        self.assertIn('Independent review host-attested: False', compact)
+        self.assertIn('[coverage.json](coverage.json)', compact)
+        assertion = self.coverage['cases'][0]['bindings'][0]['assertions'][0]['text']
+        self.assertNotIn(assertion, compact)
+        self.assertIn(assertion, detailed)
+        self.assertLess(len(compact), len(detailed))
+        self.assertEqual((report, self.coverage), before)
+
+    def test_cli_details_is_opt_in_and_keeps_json_evidence_unchanged(self):
+        write_json(self.state_file(), self.state)
+        evidence = self.root / 'reports/limit/coverage.json'
+        write_json(evidence, self.coverage)
+        original = evidence.read_bytes()
+        report_file = evidence.with_suffix('.md')
+        command = ('--root', str(self.root), '--scope', 'limit')
+        compact = cli('check_test_evidence.py', *command)
+        self.assertOK(compact)
+        self.assertEqual(report_file.read_text().strip(), compact.stdout.strip())
+        detailed = cli('check_test_evidence.py', *command, '--details')
+        self.assertOK(detailed)
+        self.assertGreater(len(detailed.stdout), len(compact.stdout))
+        self.assertEqual(report_file.read_text().strip(), detailed.stdout.strip())
+        self.assertEqual(evidence.read_bytes(), original)
+        structured = cli('check_test_evidence.py', *command, '--json')
+        self.assertOK(structured)
+        self.assertEqual(json.loads(structured.stdout), build_evidence_report(self.root, self.state, self.coverage))
+        # Opt-in formatting never bypasses the independent-review requirement.
+        for flags in [(), ('--details',)]:
+            checked = cli('check_test_evidence.py', *command, '--require-reviewed', *flags)
+            self.assertEqual(checked.returncode, 1)
+
+    def test_missing_evidence_does_not_link_nonexistent_details(self):
+        report = build_evidence_report(self.root, self.state)
+        compact = render_report(report)
+        self.assertNotIn('(coverage.json)', compact)
+        self.assertNotIn('(execution.json)', compact)
+        for case in self.state['cases']:
+            self.assertIn('| ' + case + ' |', compact)
+        self.assertIn('not_reviewed', compact)
+        self.assertIn('not_run', compact)
 
 
 class DesignTests(Fixture):

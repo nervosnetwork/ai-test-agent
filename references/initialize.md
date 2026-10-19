@@ -17,12 +17,12 @@ Initialization has three conversational gates. Complete only the current gate.
    ```
 
 4. Fill stable target facts in root `AGENTS.md`.
-5. Replace `reviews/README.md` with a concise hierarchical area map: responsibility, boundary, entry points, observable outcomes, and planned review paths. Split broad areas into coherent capabilities/behavior groups rather than a flat module list. Follow the overview rules in [test-design.md](test-design.md#recursive-decomposition); mark unread branches with reasons and next entry points. This is a navigation map, not completed test coverage; keep Case rows for Gate 2.
+5. Replace `reviews/README.md` with a concise hierarchical area map: responsibility, boundary, entry points, observable outcomes, and planned review paths. Split broad areas into coherent capabilities/behavior groups rather than a flat module list. Follow the overview rules in [decomposition.md](decomposition.md); mark unread branches with reasons and next entry points. This is a navigation map, not completed test coverage; keep Case rows for Gate 2.
 6. Present the map and stop. Do not create review rows or tests.
 
 ## Gate 2: review cases
 
-After map confirmation, select one coherent review document and follow `review-cases.md` and the recursive decomposition in `test-design.md`. Expand its branches to independently testable leaves; selection limits breadth, not depth. Preserve unfinished frontier nodes for continuation. Stop after presenting the changed rows.
+After map confirmation, select one review and follow `review-cases.md` with the compact template. For complex branches, consult `decomposition.md`; this does not activate PR-v2 or B review. Preserve concrete outcomes and unfinished frontier nodes. Stop after presenting changed rows.
 
 ## Gate 3: automation
 
@@ -51,7 +51,7 @@ Reuse a matching checkout under `source/<project>/`; clone only when absent and 
 ## v2 assets and selected migration
 
 New projects copy standalone v2 runtime scripts, schemas, templates and references under
-`docs/ai-test-agent/`. Initialization remains additive and does not rewrite existing generated copies.
+`docs/ai-test-agent/`. Both compact and full templates are included; full PR-v2 remains opt-in. Initialization remains additive and does not rewrite existing generated copies.
 Keep `reports/` and `.ai-test-agent/` ignored. Updating the installed Skill does not update project files.
 
 For an old project, preview before applying, using the migration tool from the installed Skill:
