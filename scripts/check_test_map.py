@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -39,7 +40,10 @@ CODE_SUFFIXES = {
     ".ts",
     ".tsx",
 }
-SKIP_DIRS = {".git", ".idea", ".pytest_cache", ".venv", "node_modules", "source", "__pycache__"}
+SKIP_DIRS = {
+    ".ai-test-agent", ".git", ".idea", ".pytest_cache", ".venv", "__pycache__",
+    "node_modules", "reports", "source", "target",
+}
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -67,39 +71,31 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def is_skipped(path: Path, root: Path) -> bool:
-    try:
-        relative = path.relative_to(root)
-    except ValueError:
-        return True
-    return any(part in SKIP_DIRS for part in relative.parts)
-
-
 def location(path: Path, line: int, root: Path) -> str:
     return f"{path.relative_to(root).as_posix()}:{line}"
 
 
+def walk_files(root: Path):
+    """Yield (path, relative parts) without descending into skipped directories."""
+    for current, dirs, names in os.walk(root):
+        dirs[:] = [name for name in dirs if name not in SKIP_DIRS]
+        parts = Path(current).relative_to(root).parts
+        for name in names:
+            yield Path(current) / name, parts
+
+
 def review_files(root: Path) -> list[Path]:
-    files: list[Path] = []
-    for path in root.rglob("*.md"):
-        if is_skipped(path, root) or path.name.lower() == "readme.md":
-            continue
-        if "reviews" in path.relative_to(root).parts:
-            files.append(path)
-    return sorted(files)
+    return sorted(
+        path for path, parts in walk_files(root)
+        if "reviews" in parts and path.suffix == ".md" and path.name.lower() != "readme.md"
+    )
 
 
 def code_files(root: Path) -> list[Path]:
-    files: set[Path] = set()
-    for directory in root.rglob("*"):
-        if not directory.is_dir() or directory.name not in CODE_DIR_NAMES:
-            continue
-        if is_skipped(directory, root):
-            continue
-        for path in directory.rglob("*"):
-            if path.is_file() and path.suffix.lower() in CODE_SUFFIXES and not is_skipped(path, root):
-                files.add(path)
-    return sorted(files)
+    return sorted(
+        path for path, parts in walk_files(root)
+        if CODE_DIR_NAMES.intersection(parts) and path.suffix.lower() in CODE_SUFFIXES
+    )
 
 
 def review_rows(path: Path):
@@ -123,8 +119,10 @@ def review_rows(path: Path):
             yield number, line, match
 
 
-def selected_reviews(root: Path, reviews: list[str] | None = None) -> list[Path]:
-    available = review_files(root)
+def selected_reviews(
+    root: Path, reviews: list[str] | None = None, available: list[Path] | None = None,
+) -> list[Path]:
+    available = review_files(root) if available is None else available
     if not reviews:
         return available
     selected = []
@@ -168,9 +166,12 @@ def collect_test_maps(root: Path) -> dict[str, list[str]]:
 
 
 def build_report(root: Path, selected: list[str] | None = None) -> dict[str, object]:
-    reviews, markers = collect_review_cases(root)
+    available = review_files(root)
+    reviews, markers = collect_review_cases(root, available)
     mappings = collect_test_maps(root)
-    review_ids = set(collect_review_cases(root, selected_reviews(root, selected))[0])
+    review_ids = set(reviews) if not selected else set(
+        collect_review_cases(root, selected_reviews(root, selected, available))[0]
+    )
     all_review_ids = set(reviews)
     mapped_ids = set(mappings)
     automated = sorted(review_ids & mapped_ids)

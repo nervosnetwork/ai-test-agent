@@ -1,4 +1,4 @@
 interface:
   display_name: "AI Test Agent"
-  short_description: "Review PR intent, test trees and assertion evidence"
-  default_prompt: "Use $ai-test-agent for one scope and gate: explain the PR, build Spec/test tree and B design review, stop for confirmation, then implement direct TEST-MAP tests and have B review evidence before focused execution."
+  short_description: "Concise case reviews and focused TEST-MAP tests"
+  default_prompt: "Use $ai-test-agent for a compact case review or confirmed direct TEST-MAP tests; read only affected inputs and run focused checks."

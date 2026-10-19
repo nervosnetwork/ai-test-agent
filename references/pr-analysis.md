@@ -1,10 +1,25 @@
-# PR analysis and immutable input
+# PR analysis
+
+## Default: compact impact review
+
+Reuse the known checkout and revision; inspect the diff summary, affected behavior and existing cases.
+Read only needed source ranges. Update one review with scope/source, a short before → after note and
+changed rows using `templates/test-review.md`. Mark unread branches and resume points; stop at G1
+for material case changes. An impact-only question needs a short answer, not new review files.
+Do not launch B, hash a whole workspace or create reports for this path. It is not full-PR acceptance.
+
+## Full PR-v2: explicit request or existing project requirement
+
+Use the rest of this reference only for requested independent design/coverage review or a controlled
+PR-v2 workflow. Continue active scope state without repeating completed stages; never switch modes
+to bypass gates. Use `templates/test-review-full.md`; all existing checks below remain required.
+
 
 Keep the skill's reviewer-first gates. Reuse the product checkout; never overwrite a conflicting path.
 For large PRs, present a change overview and select one observable-behavior slice. Label other slices
 and cross-boundary effects unanalysed. Whole-PR acceptance requires aggregation, not renaming a slice.
 Keep that overview hierarchical and recursively expand the selected slice using
-[test-design.md](test-design.md#recursive-decomposition). A large diff is not a reason to flatten
+[decomposition.md](decomposition.md). A large diff is not a reason to flatten
 states, conditions and distinct outcomes into first-level cases. Preserve unfinished branches with
 specific missing evidence and resume points; scope selection limits breadth, not depth.
 The complete frozen diff remains B's coverage denominator even for a slice: each change needs a Spec
