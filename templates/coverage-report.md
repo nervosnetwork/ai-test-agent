@@ -5,7 +5,7 @@ Do not edit this report to approve a Case; update the source design or rerun the
 
 1. Scope boundary, acceptance result and isolation limitations.
 2. Gap-first table: Case / mapping / B judgment / validity / actual execution / action.
-3. Evidence paths, symbols, selectors, setup, trigger, observation and assertion locations.
+3. Link `coverage.json` for full paths, selectors, setup, observations and assertions; do not repeat every binding by default. Use `check_test_evidence.py --details` for expanded Markdown.
 4. Original execution command, output and exit status are in sibling `execution.json` / `execution.log`.
 
 Missing evidence still produces a row. `missing`, `partial`, `uncertain`, `stale`, `skipped`,

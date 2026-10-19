@@ -68,6 +68,25 @@ class ProjectGeneratorTests(unittest.TestCase):
                 "| `[AREA-01]` | - [ ] ",
                 (output / "templates" / "test-review.md").read_text(),
             )
+            # Generated projects must receive the depth guidance, not just the installed Skill.
+            design = (output / "docs/ai-test-agent/test-design.md").read_text()
+            self.assertEqual(design, (ROOT / "references/test-design.md").read_text())
+            self.assertIn("## Recursive decomposition", design)
+            decomposition = (output / "docs/ai-test-agent/decomposition.md").read_text()
+            self.assertIn("Stop only when a leaf", decomposition)
+            self.assertIn("### Depth review before G1", design)
+            self.assertIn("Scope limits breadth, not test-tree depth", (output / "AGENTS.md").read_text())
+            template = (output / "templates/test-review.md").read_text()
+            self.assertEqual(template, (ROOT / "templates/test-review.md").read_text())
+            # Both output modes must be runnable with their actual validators.
+            for name, checker in [("test-review.md", "check_test_map.py"),
+                                  ("test-review-full.md", "check_test_design.py")]:
+                content = (output / "templates" / name).read_text().replace("[AREA-01]", "AREA-01")
+                review = output / "reviews" / "sample.md"
+                review.write_text(content)
+                result = run(str(output / "scripts" / checker), "--review", "reviews/sample.md", cwd=output)
+                self.assertEqual(result.returncode, 0, result.stdout)
+            review.unlink()
 
             with (output / "README.md").open("a", encoding="utf-8") as handle:
                 handle.write("\nsentinel\n")
@@ -299,11 +318,16 @@ class SkillContractTests(unittest.TestCase):
             ROOT / "assets" / "repo-tests" / "suite" / "AGENTS.md"
         ).read_text(encoding="utf-8")
 
-        self.assertLessEqual(len(skill.split()), 1200)
+        self.assertLessEqual(len(skill.split()), 650)
         self.assertLessEqual(len(agents.split()), 500)
         self.assertLessEqual(len(suite_agents.split()), 140)
         self.assertIn("Do not automatically continue to the next interface", skill)
         self.assertIn("Do not repeatedly poll", skill)
+        # Follow-up edits inside an existing scope must not re-enter the full PR-v2 pipeline.
+        for content in (skill, agents):
+            self.assertIn("need", content)
+            self.assertIn("no G1", content.replace("\n", " "))
+            self.assertIn("is not a request", content)
         for reference in [
             "help.md",
             "initialize.md",

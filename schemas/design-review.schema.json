@@ -106,6 +106,56 @@
         ],
         "additionalProperties": false
       }
+    },
+    "diff_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "change_id": {
+            "type": "string",
+            "pattern": "^DIFF-[0-9a-f]{64}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "mapped",
+              "no_behavior_change",
+              "gap",
+              "unanalysed",
+              "out_of_scope"
+            ]
+          },
+          "spec_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "finding_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "change_id",
+          "status",
+          "spec_refs",
+          "reason",
+          "finding_ids"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "required": [
@@ -114,7 +164,8 @@
     "input_fingerprint",
     "reviewer",
     "acknowledgements",
-    "findings"
+    "findings",
+    "diff_coverage"
   ],
   "additionalProperties": false
 }

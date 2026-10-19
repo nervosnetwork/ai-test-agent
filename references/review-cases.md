@@ -1,31 +1,25 @@
-# Review Cases and Feedback
+# Review cases
 
-## Source-derived cases
+Read the selected rows, matching mappings, relevant source and root feedback only. Derive cases from
+observable inputs/results/state changes; inspect additional paths when the evidence requires them.
+Group variations with the same operation and oracle; separate independently failing outcomes.
 
-Before writing rows, inspect only evidence relevant to the selected behavior: inputs, outputs, state changes, errors, existing tests, dependencies, limits, ordering/replay, persistence/restart, compatibility, and security-sensitive inputs.
+Use `templates/test-review.md`: scope/source, five-column cases, actual questions only. Keep cells to
+one concise sentence or short clauses; put shared setup above the table once. Omit empty sections,
+stock risks, exhaustive N/A lists, execution logs and tutorials. Complex scopes may add a compact
+hierarchy with Case IDs ([decomposition.md](decomposition.md)); keep unread branches explicit. Preserve an existing Spec/tree rather than
+reformatting it for brevity. Full PR-v2 alone uses `templates/test-review-full.md` and `test-design.md`.
 
-Emit only supported cases. Prefer one case that proves a coherent observable result over field-by-field cases sharing the same request and oracle. Split larger scopes coherently without silently dropping behavior.
-
-Use `templates/test-review.md`. Summarize genuine N/A decisions or unresolved behavior in short prose.
-
-Prefix every scenario cell with `- [ ]` for a case without mapped automation or `- [x]` for a case with a matching `TEST-MAP` comment. New review rows start unchecked; change the marker only when mapped test code is added or removed.
-
-A convincing review lets the leader see how requirements, changed behaviors, and relevant risks correspond to case IDs and concrete expected results, why this supports coverage of the stated scope, and which gaps or uninspected areas remain. For PR-v2, place this explanation in sourced Spec and a Markdown test tree before the same five-column table. Follow [test-design.md](test-design.md) for independent B review before the existing G1; do not add a duplicate Case ledger.
+New rows start `- [ ]`; `- [x]` mirrors existing `TEST-MAP` presence. Preserve stable IDs. Present every
+changed row (including deletions) and wait at G1 before mapped implementation; do not paste unchanged rows.
 
 ## Corrective feedback
 
-Before revising cases, read root `reviews/review-feedback.md` when it exists.
-
-When a human corrects AI-authored cases—missing or unnecessary cases, scenario or expectation errors, priority changes, merges, splits, renames, or deletions—append one physical line:
+Read root `reviews/review-feedback.md` before revisions. On a human correction, create it if needed
+and append one physical line, preserving wording (collapse line breaks; escape literal `|` as `\|`):
 
 ```text
 - model: <model-id-or-unavailable> | cases: <case IDs or review scope> | feedback: <human feedback verbatim>
 ```
 
-- Create the file on the first correction.
-- Preserve the human wording; collapse line breaks to spaces and escape literal `|` as `\|`.
-- Apply the correction directly and preserve IDs where behavior is unchanged.
-- Do not record approval without a correction.
-- Keep the file as reusable analysis feedback, not a case status, approval ledger, resolution log, or run history.
-
-Use one root `reviews/review-feedback.md` across all suites so corrections remain centralized with the review documents.
+Do not record approval without a correction. This is reusable feedback, not a case status or run history.

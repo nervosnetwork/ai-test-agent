@@ -64,7 +64,8 @@ Full output, command, environment key names, product revision, duration and exit
 Suspected product failures, test defects, environment failures and unstable results need explicit triage;
 the generic runner leaves unknown causes `unclassified` rather than guessing.
 
-`coverage.md` starts from the selected Case set, gap-first, then offers code evidence. P0 and explicit
+`coverage.md` contains every selected Case, gap-first, and links complete code evidence in `coverage.json`.
+Use `check_test_evidence.py --details` only when expanded binding/assertion Markdown is requested. P0 and explicit
 `--require-case` Cases need current covered evidence and corresponding stable pass results. Current
 implementation conservatively routes **any** remaining gap, unverified B or unresolved decision to G2;
 it has no automated risk-waiver service. Human-accepted deferrals must remain visible and do not turn

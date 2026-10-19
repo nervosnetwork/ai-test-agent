@@ -22,6 +22,7 @@ def block(text: str, name: str) -> str:
 
 def check_design(root: Path, reviews: list[str]) -> dict:
     errors, decisions, cases, associations = [], [], {}, {}
+    all_spec_refs = set()
     files = selected_reviews(root, reviews)
     mapping = build_report(root, reviews)
     for key in ("duplicate_review_ids", "orphan_mappings", "missing_automation_markers"):
@@ -74,6 +75,7 @@ def check_design(root: Path, reviews: list[str]) -> dict:
                 errors.append(f"{name}#{sid}: explain testing disposition")
         if not specs:
             errors.append(f"{name}: no Spec rules")
+        all_spec_refs.update(f"{name}#{sid.lower()}" for sid in specs)
         primary = {case: 0 for case in local}
         used = set()
         tree_ids = set()
@@ -125,6 +127,7 @@ def check_design(root: Path, reviews: list[str]) -> dict:
                 errors.append(f"{name}#{sid}: tested rule has no Case")
         cases.update(local)
     return {"schema_version": "2.0", "cases": cases, "spec_refs": {k: sorted(v) for k, v in associations.items()},
+            "all_spec_refs": sorted(all_spec_refs),
             "design_fingerprint": design_hash(root, [p.relative_to(root).as_posix() for p in files]),
             "errors": errors, "needs_decision": decisions}
 

@@ -177,7 +177,7 @@ def build_evidence_report(root: Path, state: dict, coverage=None, execution=None
             "execution_level": execution.get("level", "none") if execution else "none"}
 
 
-def render_report(report: dict, coverage=None) -> str:
+def render_report(report: dict, coverage=None, *, details=False) -> str:
     def cell(value):
         return str(value).replace("|", "\\|").replace("\n", " ")
     lines = [f"# Coverage: {report['scope']}", "", f"Result: **{report['result']}**", "",
@@ -190,6 +190,10 @@ def render_report(report: dict, coverage=None) -> str:
         lines.append("| " + " | ".join(cell(x) for x in [row['case_id'], row['mapped'], row['coverage'], row['validity'], row['execution'] + (" (unstable)" if row['unstable'] else ""), "; ".join(row['issues']) or "none"]) + " |")
     lines += ["", *[f"- {cell(e)}" for e in report["errors"]]]
     if coverage:
+        lines += ["", "Evidence: [coverage.json](coverage.json)"]
+    if report["execution_level"] != "none":
+        lines += ["Execution: [record](execution.json) · [output](execution.log)"]
+    if coverage and details:
         lines += ["", "## Code evidence", ""]
         for item in coverage.get("cases", []):
             lines += [f"### {cell(item['case_id'])}", ""]
@@ -207,6 +211,7 @@ def main():
     parser.add_argument("--scope", required=True)
     parser.add_argument("--require-reviewed", action="store_true")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--details", action="store_true", help="include binding/assertion details in Markdown")
     args = parser.parse_args()
     try:
         root = args.root.resolve()
@@ -216,10 +221,10 @@ def main():
         execution = read_json(reports / "execution.json") if (reports / "execution.json").exists() else None
         report = build_evidence_report(root, state, coverage, execution)
         (reports / "coverage.md").parent.mkdir(parents=True, exist_ok=True)
-        (reports / "coverage.md").write_text(render_report(report, coverage), encoding="utf-8")
+        (reports / "coverage.md").write_text(render_report(report, coverage, details=args.details), encoding="utf-8")
     except (ValueError, OSError, KeyError) as error:
         parser.exit(1, f"{error}\n")
-    print(json.dumps(report, ensure_ascii=False, indent=2) if args.json else render_report(report))
+    print(json.dumps(report, ensure_ascii=False, indent=2) if args.json else render_report(report, coverage, details=args.details))
     return int(bool(report["errors"]) or args.require_reviewed and (not report["independent_review"] or any(row["validity"] != "current" for row in report["cases"])))
 
 

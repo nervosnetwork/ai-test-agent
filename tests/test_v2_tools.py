@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 from check_test_map import build_report
 from check_test_design import check_design
-from check_test_evidence import build_evidence_report, validate_coverage, execution_for
+from check_test_evidence import build_evidence_report, validate_coverage, execution_for, render_report
 from pr_workflow import validate_design_review
 from evidence_annotations import render_python, verify_comments_only
 from workflow_lib import (design_hash, freeze_inputs, fresh_inputs, git, read_json, fingerprint,
@@ -100,6 +100,7 @@ class Fixture(unittest.TestCase):
                       'command': [sys.executable, str(ROOT / 'scripts/run_unittest.py'), 'discover', '-s', 'suites/api/tests'],
                       'cwd': '.', 'product': {'root': str(self.product), 'base_tip': self.head, 'head': self.head, 'diff_base': self.head},
                       'cases': design['cases'], 'spec_refs': design['spec_refs'], 'design_decisions': [],
+                      'all_spec_refs': design['all_spec_refs'], 'diff_inventory': [],
                       'design_adapter': {'transport_contract_tested': True, 'host_attested': False},
                       'coverage_adapter': {'transport_contract_tested': True, 'host_attested': False},
                       'stage': 'COVERAGE_REVIEWED'}
@@ -140,7 +141,7 @@ class Fixture(unittest.TestCase):
                     'acknowledgements': [
                         {'case_id': case, 'spec_refs': state['spec_refs'][case]} for case in sorted(state['cases'])
                     ],
-                    'findings': []}
+                    'findings': [], 'diff_coverage': []}
         write_json(self.root / 'design.json', evidence)
         self.assertOK(self.workflow('review', '--scope', 'limit', '--phase', 'design', '--evidence', str(self.root / 'design.json')))
         responses = {'schema_version': '2.0', 'scope': 'limit',
@@ -152,11 +153,65 @@ class Fixture(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
+class CompactReportTests(Fixture):
+    def test_compact_report_preserves_every_case_status_and_limitation(self):
+        self.coverage['cases'][0]['limitations'] = ['manual check | pending\noperator']
+        report = build_evidence_report(self.root, self.state, self.coverage)
+        before = copy.deepcopy((report, self.coverage))
+        compact = render_report(report, self.coverage)
+        detailed = render_report(report, self.coverage, details=True)
+        for row in report['cases']:
+            rendered = next(line for line in compact.splitlines() if line.startswith('| ' + row['case_id'] + ' |'))
+            for value in (str(row['mapped']), row['coverage'], row['validity'], row['execution']):
+                self.assertIn(value, rendered)
+        self.assertIn(r'manual check \| pending operator', compact)
+        self.assertIn('Independent review host-attested: False', compact)
+        self.assertIn('[coverage.json](coverage.json)', compact)
+        assertion = self.coverage['cases'][0]['bindings'][0]['assertions'][0]['text']
+        self.assertNotIn(assertion, compact)
+        self.assertIn(assertion, detailed)
+        self.assertLess(len(compact), len(detailed))
+        self.assertEqual((report, self.coverage), before)
+
+    def test_cli_details_is_opt_in_and_keeps_json_evidence_unchanged(self):
+        write_json(self.state_file(), self.state)
+        evidence = self.root / 'reports/limit/coverage.json'
+        write_json(evidence, self.coverage)
+        original = evidence.read_bytes()
+        report_file = evidence.with_suffix('.md')
+        command = ('--root', str(self.root), '--scope', 'limit')
+        compact = cli('check_test_evidence.py', *command)
+        self.assertOK(compact)
+        self.assertEqual(report_file.read_text().strip(), compact.stdout.strip())
+        detailed = cli('check_test_evidence.py', *command, '--details')
+        self.assertOK(detailed)
+        self.assertGreater(len(detailed.stdout), len(compact.stdout))
+        self.assertEqual(report_file.read_text().strip(), detailed.stdout.strip())
+        self.assertEqual(evidence.read_bytes(), original)
+        structured = cli('check_test_evidence.py', *command, '--json')
+        self.assertOK(structured)
+        self.assertEqual(json.loads(structured.stdout), build_evidence_report(self.root, self.state, self.coverage))
+        # Opt-in formatting never bypasses the independent-review requirement.
+        for flags in [(), ('--details',)]:
+            checked = cli('check_test_evidence.py', *command, '--require-reviewed', *flags)
+            self.assertEqual(checked.returncode, 1)
+
+    def test_missing_evidence_does_not_link_nonexistent_details(self):
+        report = build_evidence_report(self.root, self.state)
+        compact = render_report(report)
+        self.assertNotIn('(coverage.json)', compact)
+        self.assertNotIn('(execution.json)', compact)
+        for case in self.state['cases']:
+            self.assertIn('| ' + case + ' |', compact)
+        self.assertIn('not_reviewed', compact)
+        self.assertIn('not_run', compact)
+
+
 class DesignTests(Fixture):
     def test_design_review_requires_exact_case_and_spec_acknowledgements(self):
         value = {'acknowledgements': [
             {'case_id': case, 'spec_refs': self.state['spec_refs'][case]} for case in sorted(self.state['cases'])
-        ], 'findings': []}
+        ], 'findings': [], 'diff_coverage': []}
         validate_design_review(self.state, value)
         value['acknowledgements'].pop()
         with self.assertRaisesRegex(ValueError, 'Case set mismatch'):
@@ -195,6 +250,36 @@ class DesignTests(Fixture):
         result = check_design(self.root, self.state['reviews'])
         self.assertEqual(result['errors'], [])
         self.assertEqual(result['spec_refs']['API-01'], ['reviews/api/limit.md#spec-01'])
+
+    def test_tree_depth_is_unbounded_and_preserves_case_identity(self):
+        baseline = check_design(self.root, self.state['reviews'])
+        # Simple branches stay shallow; complex ones may continue beyond template depth.
+        for levels in (1, 3, 6):
+            with self.subTest(levels=levels):
+                parents = ''.join('  ' * depth + '- state condition\n'
+                                  for depth in range(1, levels + 1))
+                leaf = '  ' * (levels + 1) + '- API-02 [primary] -> SPEC-01: rejected\n'
+                self.review.write_text(REVIEW.replace(
+                    '  - API-02 [primary] -> SPEC-01: rejected\n', parents + leaf))
+                result = check_design(self.root, self.state['reviews'])
+                self.assertEqual(result['errors'], [])
+                self.assertEqual(set(result['cases']), set(baseline['cases']))
+                self.assertEqual(result['spec_refs'], baseline['spec_refs'])
+        self.review.write_text(REVIEW)
+        self.assertEqual(check_design(self.root, self.state['reviews'])['errors'], [])
+
+    def test_nested_frontier_requires_reason_and_stays_unresolved(self):
+        frontier = ('  - downstream effects\n'
+                    '    - retry state\n'
+                    '      - [unanalysed] restart — unread storage contract; next: storage.py\n')
+        self.review.write_text(REVIEW.replace('<!-- TEST-TREE-END -->', frontier + '<!-- TEST-TREE-END -->'))
+        result = check_design(self.root, self.state['reviews'])
+        self.assertEqual(result['errors'], [])
+        self.assertTrue(any('next: storage.py' in item for item in result['needs_decision']))
+        self.review.write_text(self.review.read_text().replace(
+            '[unanalysed] restart — unread storage contract; next: storage.py', 'restart'))
+        self.assertTrue(any('unexplained leaf branch' in item for item in
+                            check_design(self.root, self.state['reviews'])['errors']))
 
     def test_dangling_orphan_duplicate_primary_and_missing_spec_fail(self):
         mutations = [('API-02 [primary]', 'API-99 [primary]'),
@@ -432,6 +517,7 @@ class WorkflowTests(Fixture):
             'acknowledgements': [
                 {'case_id': case, 'spec_refs': state['spec_refs'][case]} for case in sorted(state['cases'])
             ],
+            'diff_coverage': [],
             'findings': [{'finding_id': 'F-01', 'location': 'API-01', 'basis': 'SPEC-01',
                           'suggestion': 'clarify setup', 'impact': 'ambiguous precondition'}],
         }

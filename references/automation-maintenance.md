@@ -1,55 +1,22 @@
-# Automation, Maintenance, and PR Work
+# Confirmed automation and maintenance
 
-## Implementation caution: simple, readable, maintainable
+1. Reuse project instructions, source checkout, affected rows and all corresponding `TEST-MAP` sites.
+   If case intent changes, update rows and stop at G1 before editing mapped automation.
+2. Implement direct, readable tests with native runners/fixtures. Avoid abstraction that hides
+   assertions which prove the expected behavior. Keep setup/action/oracle visible; group shared setup.
+3. Synchronize all affected inputs, actions, assertions, mappings and scenario checkboxes. Remove obsolete
+   mappings after merges/deletions. Wording-only changes need alignment inspection, not automatic rewrites.
+4. Run focused deterministic tests and `check_test_map.py --review <path>` once after the batch. Broaden
+   for affected shared dependencies, not by default. Bound live-network retries; inspect CI once.
 
-- Prefer the simplest implementation that proves the confirmed behavior; avoid speculative frameworks and excessive abstraction.
-- Keep setup, action, and assertions easy to follow, with descriptive names and failure messages that identify what went wrong.
-- Keep test data and dependencies explicit. Reuse helpers or fixtures when they reduce real duplication, but keep behavior and assertions visible so changes stay local.
+Report changed IDs, command/result/exit status and any actual gap or next decision. Mapping presence
+is not assertion coverage or execution. Avoid per-case success explanations and extra summary files.
+Never weaken expectations or modify product code merely to turn a run green.
 
-## Implement confirmed cases
+Follow-up renames, moves, style cleanups and runner fixes that keep intent and assertions stay on this
+compact path even inside a PR-v2 scope: no G1, B call, freeze or report. Edit, run focused tests, hand off.
 
-1. Read the affected review rows and find existing code with `TEST-MAP: <CASE-ID>`.
-2. Use the target's native language, runner, fixtures, and CI conventions.
-3. Prefer direct, readable arrange-act-assert tests. Add an abstraction only when it removes meaningful repetition without hiding the behavior or oracle.
-4. Use assertions on the smallest caller-observable result, state change, side effect, or error needed to prove the expected behavior. Avoid incidental details and tautologies.
-5. Update each affected scenario checkbox to `- [x]` when its `TEST-MAP` is present, or `- [ ]` when its mapping is removed.
-6. Run one focused deterministic command and the mapping checker; it validates checkbox-to-code consistency.
-7. If justified, run one broader suite. Use live networks only for behavior that requires them, with bounded retries.
-8. Check CI once after pushing. Report pending status rather than polling unless the user explicitly requests waiting.
-
-Explain added automation compactly. Group IDs that share the same reason and oracle; expand failed, ambiguous, or unusually risky cases only.
-
-## Maintain an existing project
-
-1. Read root `AGENTS.md`, the affected review document, relevant feedback, and mapped tests.
-2. Resolve and reuse the declared source checkout.
-3. For PR work, first follow [pr-analysis.md](pr-analysis.md) to fix both repository inputs; inspect the selected diff and widen reads only as needed.
-4. Preserve IDs when behavior remains the same. Add or remove rows only when observable behavior is added or removed.
-5. If a row changes materially, stop at the review gate before modifying mapped tests.
-6. After confirmation, locate all corresponding test points through the affected case IDs and `TEST-MAP` comments. Synchronize inputs, setup, execution steps, and assertions with the revised cases; update mappings and scenario checkboxes as needed. For deleted, merged, or split cases, remove obsolete mappings and revise the affected tests while preserving coverage for retained behavior. For wording or priority changes only, verify alignment and explain when no code change is needed.
-7. Run the focused tests and mapping checker. Inspect assertion alignment as well: the checker validates mapping presence, not whether a test proves the revised expectation.
-
-For a previously unmapped area, return to the area-map and review gates.
-
-## PR handoff
-
-```text
-PR impact: <changed behavior> -> <review document and IDs> -> <test action>
-Changed cases: <only changed IDs and expectations>
-Added automation: <group shared reasons/oracles; expand exceptions>
-Coverage: <mapped>/<reviewed>; unmapped: <IDs or none>
-Verification: <command> -> <literal result and exit status>
-Residual risk: <ambiguous, manual, unavailable, or none>
-Next gate: <review confirmation or implementation action>
-```
-
-Omit irrelevant fields. Passing tests support the identified behavior but do not prove unknown risks absent.
-
-## PR-v2 continuation
-
-After G1, keep the implementation rules above, then follow [coverage-review.md](coverage-review.md).
-Freeze A implementation, ask independent B for complete selected-Case evidence, render supported
-comments from that evidence, freeze the final snapshot and execute. Report mapping, B judgment,
-freshness and execution separately. Changed design returns to G1; changed helpers/fixtures/config
-return to B. Legacy unchanged reviews may continue the original mapping-only workflow, never
-represented as independently reviewed merely because their checkboxes are checked.
+For ordinary PR impact use the compact route in `pr-analysis.md`. For an active or explicitly requested
+full PR-v2 scope, follow `coverage-review.md` after G1: freeze implementation, independent B evidence,
+managed comments, frozen execution and G2. Changed design returns to G1; changed test dependencies
+return to B. Compact work never claims independent review.
