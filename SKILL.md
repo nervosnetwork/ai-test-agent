@@ -46,6 +46,8 @@ confirmation when intent is unchanged. Read root corrective feedback before revi
 
 Implement direct, readable tests; avoid abstraction that hides assertions which prove the expected behavior.
 Use one `TEST-MAP: <CASE-ID>` per native comment, inspect all affected mappings and synchronize checkboxes.
+Python tests: mapping above definition; numbered Chinese docstring steps; matching numbered code-block comments.
+See the [format](references/automation-maintenance.md#test-comment-format).
 Run `python3 scripts/check_test_map.py --review <path>`; completeness means mapping only.
 Never weaken expectations or change product code just to pass tests.
 

@@ -27,6 +27,9 @@ B call, freeze or report. Use the existing runner, fixtures and style; no ad hoc
 scripts, product builds or other-language edits unless requested.
 
 Use one `TEST-MAP: <CASE-ID>` per native comment. Update all affected mappings and scenario checkboxes.
+For Python tests, put the mapping above the test definition, numbered Chinese steps in its docstring,
+and matching numbered comments before each code block. Follow
+`docs/ai-test-agent/automation-maintenance.md#test-comment-format`.
 Keep the table `用例 | 场景 | 预期结果 | 防止的问题 | 优先级`; `[x]` means mapping only.
 Write `待确认：<decision>` for unresolved expectations. Paths and execution logs stay outside rows.
 

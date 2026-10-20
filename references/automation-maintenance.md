@@ -20,3 +20,33 @@ For ordinary PR impact use the compact route in `pr-analysis.md`. For an active 
 full PR-v2 scope, follow `coverage-review.md` after G1: freeze implementation, independent B evidence,
 managed comments, frozen execution and G2. Changed design returns to G1; changed test dependencies
 return to B. Compact work never claims independent review.
+
+## Test comment format
+
+For Python mapped tests, keep `# TEST-MAP: <CASE-ID>` above the test definition (above any decorators).
+Start the function with a Chinese docstring listing the scenario steps as `1.`, `2.`, `3.`, …:
+describe setup/actions and the observable checks, not implementation trivia. Before each corresponding
+code block, add a concise `# 1. …`, `# 2. …`, … comment with matching numbering and meaning.
+Use as many steps as the scenario needs; three is an example, not a fixed count. Separate step blocks
+with blank lines. Keep comments aligned when actions or assertions change; retain Case IDs and behavior
+for comment-only edits. Other languages use native comments for the same structure.
+
+Format example (ellipses stand for existing test code, not an executable test implementation):
+
+```python
+# TEST-MAP: VT2-45
+def test_locally_rejected_slow_transaction_recovers_when_conflict_is_replaced(self):
+    """
+    1. 慢交易 A 网络超时后隔离对端；快速交易 B 占用 A 的输入。
+    2. 本地提交 A，检查手续费不足以替换 B 而返回 RBFRejected。
+    3. 交易 C 替换 B 后释放 A 的输入；不重交 A，检查它自动恢复并确认。
+    """
+    # 1. 构造 A 超时后隔离对端、B 占用 A 输入的状态。
+    ...
+
+    # 2. 本地提交 A，断言因替换手续费不足而返回 RBFRejected。
+    ...
+
+    # 3. 用 C 替换 B；不重交 A，断言 A 自动恢复并确认。
+    ...
+```
