@@ -27,7 +27,8 @@ question sections; preserve the required Spec fields, markers and complete chang
 Promoted from corrective feedback across test projects; apply to every review and automation change.
 
 - Decompose top-down first: module → sub-area → each message/interface; give a tickable todo, then cases.
-- View each behavior from at least three roles: normal initiator, normal receiver, malicious peer; check post-recovery boundaries.
+- View each behavior from multiple roles: normal initiator, normal receiver, malicious peer and post-recovery
+  boundaries. This is not a closed list; add new viewpoints whenever a scenario introduces them.
 - Expected results come from requirements/protocol, not current code. On mismatch, assert observed behavior,
   record the deviation and mark `待确认`; never silently rewrite the expectation.
 - Fix the environment baseline: real binaries, current hard fork, no product patches. Skip unreleased
@@ -42,14 +43,15 @@ Decompose before writing cases: list modules, then sub-areas, then each message,
 keep this as a tickable todo (`- [ ]`) that the human can review at G1. Only leaf items get Case rows;
 an unexpanded item stays a todo with a resume point instead of a broad catch-all Case.
 
-For every leaf, enumerate roles before outcomes:
+For every leaf, enumerate roles before outcomes. Start from these and extend them (operator, upgraded vs
+old node, concurrent peer, restarted node, ...) whenever the scenario has other actors or states:
 
 - Normal initiator sends valid, boundary and malformed requests.
 - Normal receiver gets the message from an honest peer and replies correctly.
 - Malicious peer sends or replies with crafted, oversized, out-of-order or replayed data.
 - After failure or recovery (reconnect, restart, ban expiry), the next normal step does not stall.
 
-Missing roles must be marked as gaps, not dropped. When observed product behavior differs from the
+Covering the starting list does not complete the leaf; missing roles must be marked as gaps, not dropped. When observed product behavior differs from the
 requirement, write a characterization assertion with a message naming it as observed behavior and add
 a `待确认` deviation note (source location, scenario, actual behavior, impact) to the review.
 
