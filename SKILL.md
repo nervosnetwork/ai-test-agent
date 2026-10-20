@@ -42,7 +42,7 @@ failure/boundary, P2 = lower-impact edge. Unresolved expectations use `待确认
 For added, deleted or materially changed cases, present the complete changed row set and stop at G1.
 Generate or update mapped tests only after explicit human confirmation of the current design.
 Do not combine review and implementation in one handoff. Wording/checkbox-only edits keep existing
-confirmation when intent is unchanged. Read root corrective feedback before revising cases.
+confirmation when intent is unchanged. Read root feedback and [lessons](references/test-design.md#general-lessons) before revisions.
 
 Implement direct, readable tests; avoid abstraction that hides assertions which prove the expected behavior.
 Use one `TEST-MAP: <CASE-ID>` per native comment, inspect all affected mappings and synchronize checkboxes.
