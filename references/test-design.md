@@ -1,7 +1,8 @@
 # Spec, tree and B design review
 
-For full PR-v2, use `templates/test-review-full.md`. Spec, Markdown nested test tree and the unique Case table live in one
-root review. Rules are `### SPEC-01：...` headings, never a competing five-column rule table.
+Spec, Markdown nested test tree and the unique Case table are mandatory in every selected review.
+For full PR-v2, use `templates/test-review-full.md` and its additional independent review gates.
+Rules are `### SPEC-01：...` headings, never a competing five-column rule table.
 The template's fixed English field keys support deterministic parsing; values may use any language.
 
 - `Condition`, `Expected`, `Observable`, `Basis`, `Source`, `Testing` are required.
@@ -16,7 +17,7 @@ The template's fixed English field keys support deterministic parsing; values ma
 Group by observed behavior, not files or a universal category checklist. Tree size is not a proof of
 exhaustiveness. The structure checker reports dangling/isolated Cases and missing links, not whether
 A omitted an entire behavior. Unmarked legacy reviews remain supported by the mapping checker but
-need explicit blocks/Spec/tree before joining v2 design validation.
+need explicit blocks/Spec/tree when selected for design validation.
 
 Keep prose terse: shared context once, short rule values, tree labels plus IDs rather than repeated
 case descriptions. Link B reports/responses instead of copying them into the review. Omit empty

@@ -309,6 +309,25 @@ class DesignTests(Fixture):
         self.assertEqual(build_report(self.root)['automation_coverage'], '1/1')
         self.assertTrue(check_design(self.root, self.state['reviews'])['errors'])
 
+    def test_selected_review_requires_spec_tree_and_cases(self):
+        mutations = {
+            'Spec': ('### SPEC-01：limit\n', '### RULE-01：limit\n'),
+            'tree': ('<!-- TEST-TREE-BEGIN -->', '<!-- TREE-BEGIN -->'),
+            'cases': ('<!-- TEST-CASES-BEGIN -->', '<!-- CASES-BEGIN -->'),
+        }
+        for section, (before, after) in mutations.items():
+            with self.subTest(section=section):
+                self.review.write_text(REVIEW.replace(before, after))
+                self.assertTrue(check_design(self.root, self.state['reviews'])['errors'])
+        self.review.write_text(REVIEW)
+
+    def test_selected_review_requires_spec_tree_case_order(self):
+        spec, rest = REVIEW.split('## Tree\n', 1)
+        self.review.write_text('## Tree\n' + rest + '\n' + spec)
+        errors = check_design(self.root, self.state['reviews'])['errors']
+        self.assertTrue(any('Spec → test tree → cases order' in error for error in errors))
+        self.review.write_text(REVIEW)
+
     def test_design_hash_ignores_only_case_checkboxes(self):
         before = design_hash(self.root, self.state['reviews'])
         self.review.write_text(REVIEW.replace('- [x] valid', '- [ ] valid'))

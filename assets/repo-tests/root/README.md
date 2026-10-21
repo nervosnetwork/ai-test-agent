@@ -11,11 +11,14 @@ This repository stores human-reviewed test intent and automation mapped by `TEST
 - `suites/<suite>/`: module-owned executable automation, commands, and fixtures.
 - `scripts/check_test_map.py`: computed mapping coverage.
 
-Work on one review document at a time: present changed rows, stop for confirmation, implement confirmed cases, then run a focused test and the mapping checker. Stable commands follow.
+Work on one review document at a time: write Spec → 测试树 → 用例, validate the design, present
+changed rows, stop for confirmation, implement confirmed cases, then run a focused test and both
+design and mapping checkers. Stable commands follow.
 
 {{COMMANDS_BLOCK}}
 
 ```bash
+python3 scripts/check_test_design.py --review reviews/<area>/<behavior>.md
 python3 scripts/check_test_map.py
 python3 scripts/check_test_map.py --require-complete  # only for intentionally complete scope
 ```

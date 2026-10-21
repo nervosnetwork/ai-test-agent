@@ -3,8 +3,9 @@
 ## Default: compact impact review
 
 Reuse the known checkout and revision; inspect the diff summary, affected behavior and existing cases.
-Read only needed source ranges. Update one review with scope/source, a short before → after note and
-changed rows using `templates/test-review.md`. Mark unread branches and resume points; stop at G1
+Read only needed source ranges. Update one review with scope/source, a short before → after note,
+required Spec → 测试树 → 用例 and changed rows using `templates/test-review.md`. Validate the
+selected design, mark unread branches and resume points; stop at G1
 for material case changes. An impact-only question needs a short answer, not new review files.
 Do not launch B, hash a whole workspace or create reports for this path. It is not full-PR acceptance.
 

@@ -22,7 +22,10 @@ Initialization has three conversational gates. Complete only the current gate.
 
 ## Gate 2: review cases
 
-After map confirmation, select one review and follow `review-cases.md` with the compact template. For complex branches, consult `decomposition.md`; this does not activate PR-v2 or B review. Preserve concrete outcomes and unfinished frontier nodes. Stop after presenting changed rows.
+After map confirmation, select one review and follow `review-cases.md` with the compact template.
+Spec → 测试树 → 用例 is mandatory even for a simple behavior; use `decomposition.md` to expand only
+as far as observable outcomes require. This does not activate PR-v2 or B review. Validate the
+selected design, preserve unfinished frontier nodes, and stop after presenting changed rows.
 
 ## Gate 3: automation
 

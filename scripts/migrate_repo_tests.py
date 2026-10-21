@@ -13,6 +13,11 @@ SKILL = Path(__file__).resolve().parent.parent
 
 ROOT_GUIDANCE = """
 
+## Review design
+
+Every selected review requires Spec → 测试树 → 用例 and design validation, including compact work.
+Migrate only the selected legacy review before material Case changes; this does not invoke B.
+
 ## PR v2 workflow
 
 For explicitly requested or already active full PR-v2, read `docs/ai-test-agent/pr-analysis.md`,

@@ -21,8 +21,82 @@
 
 接口负责参数检查、交易解码、调用交易接纳服务并返回结果；签名、手续费、持久化和广播规则由其他模块负责。
 
-## 待评审用例
+## Spec
 
+### SPEC-01：成功提交
+Condition: 交易格式正确且接纳服务接受
+Expected: 只调用一次接纳服务并返回交易哈希
+Observable: RPC 结果包含接纳后的哈希
+Basis: 上述接口说明；示例 revision
+Source: explicit
+Testing: required
+
+### SPEC-02：缺少参数
+Condition: 请求缺少 raw_tx
+Expected: 拒绝请求且不调用接纳服务
+Observable: RPC 返回 -32602
+Basis: 上述接口说明；示例 revision
+Source: explicit
+Testing: required
+
+### SPEC-03：非法编码
+Condition: raw_tx 编码不合法
+Expected: 拒绝请求且服务保持可用
+Observable: RPC 返回 -32602；进程继续响应
+Basis: 上述接口说明；示例 revision
+Source: explicit
+Testing: required
+
+### SPEC-04：请求过大
+Condition: 解码后的交易超过大小限制
+Expected: 在接纳前拒绝并限制资源使用
+Observable: RPC 返回拒绝；接纳服务未调用
+Basis: 示例 revision 的请求大小限制；错误码待确认
+Source: inference
+Testing: required
+
+### SPEC-05：接纳服务拒绝
+Condition: 交易可解码但被接纳服务拒绝
+Expected: 返回拒绝原因且不入队
+Observable: RPC 返回 -32010
+Basis: 上述接口说明；示例 revision
+Source: explicit
+Testing: required
+
+### SPEC-06：接纳服务不可用
+Condition: 接纳服务超时或不可用
+Expected: 返回失败且后续请求可继续处理
+Observable: RPC 返回 -32001 且无交易哈希
+Basis: 上述接口说明；示例 revision
+Source: explicit
+Testing: required
+
+### SPEC-07：重复提交
+Condition: 连续两次提交同一笔有效交易
+Expected: 待确认：幂等成功或约定的重复错误；不能重复入队
+Observable: 第二次 RPC 结果与入队次数
+Basis: 示例 revision；重复提交契约待确认
+Source: inference
+Testing: required
+
+## 测试树
+
+<!-- TEST-TREE-BEGIN -->
+- 交易提交
+  - 接纳成功：RPC-01 [primary] -> SPEC-01
+  - 输入拒绝
+    - 缺少参数：RPC-02 [primary] -> SPEC-02
+    - 非法编码：RPC-03 [primary] -> SPEC-03
+    - 超过大小限制：RPC-04 [primary] -> SPEC-04
+  - 接纳失败
+    - 明确拒绝：RPC-05 [primary] -> SPEC-05
+    - 超时或不可用：RPC-06 [primary] -> SPEC-06
+  - 重复请求：RPC-07 [primary] -> SPEC-07
+<!-- TEST-TREE-END -->
+
+## 用例
+
+<!-- TEST-CASES-BEGIN -->
 | 用例 | 场景 | 预期结果 | 防止的问题 | 优先级 |
 | --- | --- | --- | --- | --- |
 | `RPC-01` | - [ ] 提交格式正确且可以被接纳的交易 | 接纳服务只调用一次；返回接纳后的交易哈希 | 正常交易提交失败，或者同一请求被处理多次 | P0 |
@@ -32,6 +106,7 @@
 | `RPC-05` | - [ ] 交易能解码，但接纳服务拒绝该交易 | 返回 `-32010` 和拒绝原因；交易不入队 | 被拒绝的交易被错误报告为成功 | P0 |
 | `RPC-06` | - [ ] 接纳服务超时或不可用 | 返回 `-32001`；不返回交易哈希；下一次请求仍能处理 | 下游故障被错误报告为成功，或单次超时拖垮接口 | P1 |
 | `RPC-07` | - [ ] 连续两次提交同一笔有效交易 | 待确认：两次返回相同哈希，或者第二次返回约定的重复错误；不得产生两次入队副作用 | 客户端重试时产生重复处理或不兼容行为 | P1 |
+<!-- TEST-CASES-END -->
 
 ## 本轮需要确认
 

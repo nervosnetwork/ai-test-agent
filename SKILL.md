@@ -11,44 +11,40 @@ Case ID = Test Point ID. Preserve IDs; no duplicate case/status ledgers.
 ## Default: focused, compact
 
 - Complete the requested scope and current gate. Do not automatically continue to the next interface.
-- Read project instructions, then only the matching reference below. Locate relevant rows, mappings,
-  feedback and source ranges before reading (`check_test_map.py --json` lists row/mapping locations;
-  `rg` for symbols); reuse unchanged inputs and existing design.
-- Ordinary case edits, PR impact and mapped maintenance use the compact path. Do not start B agents,
-  frozen snapshots, per-hunk accounting or evidence reports unless full PR-v2 is explicitly requested
-  or required by project instructions. Existing `.ai-test-agent/` state alone is not a request; continue
-  a PR-v2 scope only when the current request targets its next gate, never downgrading it to bypass review.
-  Follow-up renames, moves, style cleanups and runner fixes that keep case intent and assertions need
-  no G1, B call, freeze or report. Compact work is not independent review or whole-PR acceptance.
+- Read project instructions and the matching reference. Locate rows and mappings with
+  `check_test_map.py --json`, symbols with `rg`; reuse existing design.
+- Ordinary cases, PR impact and maintenance use the compact path: no B, snapshots, per-hunk
+  accounting or reports unless full PR-v2 is requested or required. Existing `.ai-test-agent/`
+  state alone is not a request; do not bypass an active scope's gate. Intent-preserving follow-up
+  edits need no G1, B call, freeze or report. Compact work is not whole-PR acceptance.
 - Use the project's runner, fixtures and style. No ad hoc scripts for hashes, manifests, reports or
   annotations; no product builds, run harnesses or other-language edits unless requested.
 - Scope limits breadth, not test-tree depth. Split distinct observable outcomes; group variations
   sharing setup, action and oracle; mark unread branches with a resume point.
-- Run focused tests and the mapping checker once after changes; broaden only for affected shared
+- Every selected review requires **Spec → 测试树 → 用例** in one document, including compact work:
+  sourced rules, linked testable leaves, and Case scenarios/oracles.
+- Run focused tests and both checkers once after changes; broaden only for affected shared
   dependencies. Bound network retries. Do not repeatedly poll CI or reread unchanged files.
 
 ## Review and implementation
 
-Use [templates/test-review.md](templates/test-review.md). Keep this five-column table:
+Use [templates/test-review.md](templates/test-review.md), including all three sections even for
+simple behavior. Keep its five-column Case table.
 
-| 用例 | 场景 | 预期结果 | 防止的问题 | 优先级 |
-| --- | --- | --- | --- | --- |
-| `RPC-01` | - [ ] 提交有效请求 | 返回结果；只处理一次 | 请求失败或重复处理 | P0 |
+Rows state precondition/action and observable result. P0/P1/P2 denote blocker/important/edge.
+Use `待确认：<decision>` for unresolved expectations. `[x]` means `TEST-MAP` exists, not a pass.
 
-Each row states precondition/action and observable result. P0 = core release blocker, P1 = important
-failure/boundary, P2 = lower-impact edge. Unresolved expectations use `待确认：<decision>`.
-`[x]` means a `TEST-MAP` exists, not review approval or a test pass. Paths and run logs stay outside rows.
-
-For added, deleted or materially changed cases, present the complete changed row set and stop at G1.
-Generate or update mapped tests only after explicit human confirmation of the current design.
-Do not combine review and implementation in one handoff. Wording/checkbox-only edits keep existing
-confirmation when intent is unchanged. Read root corrective feedback before revising cases.
+For material Case changes, present every changed row and stop at G1. Generate or update mapped tests only after
+explicit human confirmation. Do not combine review and implementation in one handoff.
+Wording/checkbox-only edits retain confirmation. Read root feedback before Case revisions.
 
 Implement direct, readable tests; avoid abstraction that hides assertions which prove the expected behavior.
 Use one `TEST-MAP: <CASE-ID>` per native comment, inspect all affected mappings and synchronize checkboxes.
 Python tests: mapping above definition; numbered Chinese docstring steps; matching numbered code-block comments.
 See the [format](references/automation-maintenance.md#test-comment-format).
-Run `python3 scripts/check_test_map.py --review <path>`; completeness means mapping only.
+Run `scripts/check_test_design.py --review <path>` for structural links and
+`scripts/check_test_map.py --review <path>` after automation for mapping. Migrate selected legacy
+reviews for material Case changes, not unrelated reviews.
 Never weaken expectations or change product code just to pass tests.
 
 ## Read only the needed route
@@ -63,7 +59,7 @@ Never weaken expectations or change product code just to pass tests.
 
 ## Output budget
 
-Default Markdown: scope/source in 1–3 lines, case table, actual open decisions; optional short tree.
+Default Markdown: scope/source in 1–3 lines, required Spec → 测试树 → 用例, actual open decisions.
 Omit empty sections, N/A lists and tool logs. Edit in place; no summary files.
 
 Chat handoff: changed IDs + result + next decision, normally at most 3 bullets. Link the document

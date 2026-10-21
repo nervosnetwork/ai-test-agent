@@ -78,13 +78,16 @@ class ProjectGeneratorTests(unittest.TestCase):
             self.assertIn("Scope limits breadth, not test-tree depth", (output / "AGENTS.md").read_text())
             template = (output / "templates/test-review.md").read_text()
             self.assertEqual(template, (ROOT / "templates/test-review.md").read_text())
-            # Both output modes must be runnable with their actual validators.
-            for name, checker in [("test-review.md", "check_test_map.py"),
-                                  ("test-review-full.md", "check_test_design.py")]:
+            # Both output modes require a linked Spec → tree → Case design.
+            for name in ("test-review.md", "test-review-full.md"):
                 content = (output / "templates" / name).read_text().replace("[AREA-01]", "AREA-01")
                 review = output / "reviews" / "sample.md"
                 review.write_text(content)
-                result = run(str(output / "scripts" / checker), "--review", "reviews/sample.md", cwd=output)
+                result = run(str(output / "scripts/check_test_design.py"),
+                             "--review", "reviews/sample.md", cwd=output)
+                self.assertEqual(result.returncode, 0, result.stdout)
+                result = run(str(output / "scripts/check_test_map.py"),
+                             "--review", "reviews/sample.md", cwd=output)
                 self.assertEqual(result.returncode, 0, result.stdout)
             review.unlink()
 
@@ -282,6 +285,10 @@ class SkillContractTests(unittest.TestCase):
 
     def test_review_template_uses_scenario_checkbox_without_automation_column(self) -> None:
         template = (ROOT / "templates" / "test-review.md").read_text(encoding="utf-8")
+        self.assertLess(template.index("## Spec"), template.index("## 测试树"))
+        self.assertLess(template.index("## 测试树"), template.index("## 用例"))
+        self.assertIn("<!-- TEST-TREE-BEGIN -->", template)
+        self.assertIn("<!-- TEST-CASES-BEGIN -->", template)
         self.assertIn("| 用例 | 场景 | 预期结果 | 防止的问题 | 优先级 |", template)
         self.assertIn("| `[AREA-01]` | - [ ] ", template)
         self.assertNotIn("| 状态 |", template)

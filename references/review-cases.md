@@ -4,11 +4,18 @@ Read the selected rows, matching mappings, relevant source and root feedback onl
 observable inputs/results/state changes; inspect additional paths when the evidence requires them.
 Group variations with the same operation and oracle; separate independently failing outcomes.
 
-Use `templates/test-review.md`: scope/source, five-column cases, actual questions only. Keep cells to
-one concise sentence or short clauses; put shared setup above the table once. Omit empty sections,
-stock risks, exhaustive N/A lists, execution logs and tutorials. Complex scopes may add a compact
-hierarchy with Case IDs ([decomposition.md](decomposition.md)); keep unread branches explicit. Preserve an existing Spec/tree rather than
-reformatting it for brevity. Full PR-v2 alone uses `templates/test-review-full.md` and `test-design.md`.
+Use `templates/test-review.md`: **Spec → 测试树 → 用例** is required for every selected review,
+including simple behaviors and compact PR impact. Cite each observable rule's basis, decompose it
+into a Markdown hierarchy, and link every testable leaf to a Spec and stable Case ID
+([decomposition.md](decomposition.md)). The unique five-column table supplies scenarios and oracles.
+Keep cells to one concise sentence or short clauses; put shared setup above the table once. Omit
+only empty optional question sections, stock risks, exhaustive N/A lists, execution logs and
+tutorials. Keep unread branches explicit. For a selected legacy review without these sections,
+add them before materially changing Cases; leave unrelated reviews unchanged. Full PR-v2 additionally
+uses `templates/test-review-full.md` and `test-design.md` for independent review gates.
+
+Run `python3 scripts/check_test_design.py --review <path>` before G1; its structural checks do
+not establish semantic completeness. Compact review does not invoke B or the full PR-v2 workflow.
 
 New rows start `- [ ]`; `- [x]` mirrors existing `TEST-MAP` presence. Preserve stable IDs. Present every
 changed row (including deletions) and wait at G1 before mapped implementation; do not paste unchanged rows.

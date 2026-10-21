@@ -37,6 +37,10 @@ def check_design(root: Path, reviews: list[str]) -> dict:
         except ValueError as error:
             errors.append(f"{name}: {error}; migrate this selected document to v2")
             continue
+        first_spec = re.search(rf"(?m)^###\s+{SPEC}\s*[:：]", text)
+        if first_spec and not (first_spec.start() < text.index("<!-- TEST-TREE-BEGIN -->")
+                               < text.index("<!-- TEST-CASES-BEGIN -->")):
+            errors.append(f"{name}: expected Spec → test tree → cases order")
         local = {}
         for number, line, match in review_rows(path):
             cells = re.split(r"(?<!\\)\|", line)[1:-1]

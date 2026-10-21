@@ -6,7 +6,8 @@
    assertions which prove the expected behavior. Keep setup/action/oracle visible; group shared setup.
 3. Synchronize all affected inputs, actions, assertions, mappings and scenario checkboxes. Remove obsolete
    mappings after merges/deletions. Wording-only changes need alignment inspection, not automatic rewrites.
-4. Run focused deterministic tests and `check_test_map.py --review <path>` once after the batch. Broaden
+4. Run focused deterministic tests, `check_test_design.py --review <path>` and
+   `check_test_map.py --review <path>` once after the batch. Broaden
    for affected shared dependencies, not by default. Bound live-network retries; inspect CI once.
 
 Report changed IDs, command/result/exit status and any actual gap or next decision. Mapping presence

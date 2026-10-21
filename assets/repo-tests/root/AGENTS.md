@@ -12,11 +12,13 @@
 
 ## Default workflow
 
-One requested scope and gate at a time; read only relevant rows, feedback, mappings and source ranges.
-Use `templates/test-review.md`: scope/source, cases, actual open questions. Edit affected sections in
-place; omit empty headings, repeated descriptions and separate summary files. Scope limits breadth, not test-tree depth:
-complex behaviors retain a compact hierarchy, concrete outcomes and unread branch/resume markers.
-See `docs/ai-test-agent/decomposition.md` only when decomposition needs guidance.
+One scope and gate at a time; read relevant rows, feedback, mappings and source.
+Use `templates/test-review.md`: Spec → 测试树 → 用例 is mandatory even for compact, simple reviews.
+Leaves link sourced Specs and stable Case IDs; keep one five-column Case table. Edit in place;
+omit empty optional sections and summaries. Scope limits breadth, not test-tree depth:
+retain concrete outcomes and unread branches. See `docs/ai-test-agent/decomposition.md` as needed.
+Migrate legacy reviews before material Case changes. Run
+`scripts/check_test_design.py --review <path>` before G1; this does not invoke B or full PR-v2.
 
 For new/deleted/materially changed rows, present all changed rows, stop before changing automated tests,
 and wait for explicit human confirmation. Preserve unchanged Case IDs; checkbox/wording-only edits
@@ -48,7 +50,8 @@ independence. Never downgrade an active full scope or claim compact work was ind
 
 ## Verify and hand off
 
-Run focused tests and `check_test_map.py --review <path>` once per changed batch; broaden only for
+Run focused tests, `check_test_design.py --review <path>` and
+`check_test_map.py --review <path>` once per changed batch; broaden only for
 shared impact. No unchanged rereads or repeated CI polling. Report changes, verification (command,
 result, exit status) and actual next decision in at most 3 bullets; link documents rather than paste.
 G1 still exposes every changed row. Mapping, semantic coverage and execution remain separate.
