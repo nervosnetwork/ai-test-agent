@@ -1,6 +1,6 @@
 # {{PROJECT_NAME}} Tests
 
-This repository stores human-reviewed test intent and automation mapped by `TEST-MAP: <CASE-ID>`.
+This repository stores reviewable test intent and automation associated by `TEST-MAP: <CASE-ID>`.
 
 {{TEST_LAYOUT_DESCRIPTION}}
 
@@ -9,11 +9,14 @@ This repository stores human-reviewed test intent and automation mapped by `TEST
 - `source/{{PROJECT_SLUG}}/`: ignored product checkout.
 - `reviews/`: centralized behavior tables for every suite.
 - `suites/<suite>/`: module-owned executable automation, commands, and fixtures.
-- `scripts/check_test_map.py`: computed mapping coverage.
+- `scripts/check_test_map.py`: Case-to-code association only.
+- `scripts/run_with_evidence.py`: requested native execution receipts without PR-v2 setup.
 
-Work on one review document at a time: write Spec → 测试树 → 用例, validate the design, present
-changed rows, stop for confirmation, implement confirmed cases, then run a focused test and both
-design and mapping checkers. Stable commands follow.
+Write Spec → 测试树 → 用例 and independent verification design, then validate links. For review-only
+work present changes and stop; for an authorized end-to-end request self-review and implement the
+unambiguous Cases, run focused verification and synchronize as requested. Unknown business rules
+block dependent Cases only. See `docs/ai-test-agent/workflow.md`; full PR-v2 gates remain separate.
+Stable commands follow.
 
 {{COMMANDS_BLOCK}}
 
@@ -22,6 +25,11 @@ python3 scripts/check_test_design.py --review reviews/<area>/<behavior>.md
 python3 scripts/check_test_map.py
 python3 scripts/check_test_map.py --require-complete  # only for intentionally complete scope
 ```
+
+Mapping, native runner outcomes and proof of the intended behavior are separate facts. Use
+`docs/ai-test-agent/execution-evidence.md` for a compact receipt, and `security-review.md` for
+requested assets/authority/attack-path review. An injected wallet or host rejection is not proof
+of a real-node funds flow or validator rejection.
 
 ## PR v2
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import json
 import shutil
 import subprocess
 import sys
@@ -79,7 +80,7 @@ class ProjectGeneratorTests(unittest.TestCase):
             template = (output / "templates/test-review.md").read_text()
             self.assertEqual(template, (ROOT / "templates/test-review.md").read_text())
             # Both output modes require a linked Spec → tree → Case design.
-            for name in ("test-review.md", "test-review-full.md"):
+            for name in ("test-review.md", "test-review-full.md", "security-review.md"):
                 content = (output / "templates" / name).read_text().replace("[AREA-01]", "AREA-01")
                 review = output / "reviews" / "sample.md"
                 review.write_text(content)
@@ -176,8 +177,9 @@ class MappingCheckerTests(unittest.TestCase):
             self.write_project(root)
             partial = run(str(CHECKER), "--root", str(root))
             self.assertEqual(partial.returncode, 0, partial.stdout)
-            self.assertIn("automation coverage: 1/2", partial.stdout)
-            self.assertIn("unautomated: RPC-02", partial.stdout)
+            self.assertIn("case mappings: 1/2", partial.stdout)
+            self.assertIn("unmapped: RPC-02", partial.stdout)
+            self.assertIn("execution / behavior verification: not checked", partial.stdout)
 
             required = run(str(CHECKER), "--root", str(root), "--require-complete")
             self.assertEqual(required.returncode, 1, required.stdout)
@@ -194,8 +196,8 @@ class MappingCheckerTests(unittest.TestCase):
             )
             complete = run(str(CHECKER), "--root", str(root), "--require-complete")
             self.assertEqual(complete.returncode, 0, complete.stdout)
-            self.assertIn("automation coverage: 2/2", complete.stdout)
-            self.assertIn("unautomated: none", complete.stdout)
+            self.assertIn("case mappings: 2/2", complete.stdout)
+            self.assertIn("unmapped: none", complete.stdout)
 
     def test_orphan_mapping_fails(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -206,6 +208,35 @@ class MappingCheckerTests(unittest.TestCase):
             result = run(str(CHECKER), "--root", str(root))
             self.assertEqual(result.returncode, 1, result.stdout)
             self.assertIn("orphan mappings: RPC-99", result.stdout)
+
+    def test_mapping_is_not_execution_and_legacy_json_aliases_remain(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.write_project(root)
+            # A mapping remains an association even when the body would fail if run.
+            code = root / "tests/rpc/test_submit.py"
+            code.write_text(code.read_text().replace("assert True", "assert False"))
+            result = run(str(CHECKER), "--root", str(root), "--json")
+            self.assertEqual(result.returncode, 0, result.stdout)
+            report = json.loads(result.stdout)
+            self.assertEqual(report["mapped"], ["RPC-01"])
+            self.assertEqual(report["unmapped"], ["RPC-02"])
+            self.assertEqual(report["mapped_case_count"], report["automated_case_count"])
+            self.assertEqual(report["mapping_ratio"], report["automation_coverage"])
+            self.assertEqual(report["execution"], "not_checked")
+            self.assertEqual(report["behavior_verification"], "not_checked")
+
+    def test_browser_module_extensions_are_associated(self) -> None:
+        for suffix in (".mjs", ".cjs"):
+            with self.subTest(suffix=suffix), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                self.write_project(root)
+                (root / "tests/rpc/test_browser").with_suffix(suffix).write_text("// TEST-MAP: RPC-02\n")
+                review = root / "reviews/rpc/submit_transaction.md"
+                review.write_text(review.read_text().replace("- [ ] missing input", "- [x] missing input"))
+                result = run(str(CHECKER), "--root", str(root), "--require-complete", "--json")
+                self.assertEqual(result.returncode, 0, result.stdout)
+                self.assertEqual(json.loads(result.stdout)["mapped"], ["RPC-01", "RPC-02"])
 
     def test_missing_or_stale_scenario_checkbox_fails(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -250,7 +281,7 @@ class MappingCheckerTests(unittest.TestCase):
 
             result = run(str(scripts / "check_test_map.py"), cwd=unrelated)
             self.assertEqual(result.returncode, 0, result.stdout)
-            self.assertIn("automation coverage: 1/1", result.stdout)
+            self.assertIn("case mappings: 1/1", result.stdout)
             self.assertIn("orphan mappings: none", result.stdout)
 
 
@@ -258,15 +289,6 @@ class SkillContractTests(unittest.TestCase):
     def read_contract(self) -> str:
         paths = [ROOT / "SKILL.md", *sorted((ROOT / "references").glob("*.md"))]
         return "\n".join(path.read_text(encoding="utf-8") for path in paths)
-
-    def test_review_gate_precedes_automation(self) -> None:
-        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-        agents = (ROOT / "assets" / "repo-tests" / "root" / "AGENTS.md").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("Do not combine review and implementation in one handoff", skill)
-        self.assertIn("Generate or update mapped tests only after", skill)
-        self.assertIn("stop before changing automated tests", agents)
 
     def test_corrective_feedback_is_persisted_without_case_status(self) -> None:
         skill = self.read_contract()

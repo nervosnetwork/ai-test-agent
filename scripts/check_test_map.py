@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Report review-case mappings and validate scenario automation checkboxes."""
+"""Report Case-to-code associations, never execution or proof of behavior."""
 
 from __future__ import annotations
 
@@ -28,6 +28,8 @@ CODE_SUFFIXES = {
     ".hpp",
     ".java",
     ".js",
+    ".mjs",
+    ".cjs",
     ".jsx",
     ".kt",
     ".kts",
@@ -49,7 +51,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Compute automation coverage from review rows and TEST-MAP comments."
+        description="Compute Case-to-code associations; does not run tests or validate assertions."
     )
     parser.add_argument(
         "--root",
@@ -60,7 +62,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--require-complete",
         action="store_true",
-        help="Exit non-zero when any review case has no TEST-MAP comment",
+        help="Require a TEST-MAP association for every selected Case; not an execution check",
     )
     parser.add_argument(
         "--json",
@@ -200,8 +202,16 @@ def build_report(root: Path, selected: list[str] | None = None) -> dict[str, obj
         )
     }
     return {
+        "schema_version": "2.1",
         "root": str(root),
         "review_case_count": len(review_ids),
+        "mapped_case_count": len(automated),
+        "mapping_ratio": f"{len(automated)}/{len(review_ids)}",
+        "mapped": automated,
+        "unmapped": unautomated,
+        "execution": "not_checked",
+        "behavior_verification": "not_checked",
+        # Compatibility aliases for existing v2 consumers; these also mean association only.
         "automated_case_count": len(automated),
         "automation_coverage": f"{len(automated)}/{len(review_ids)}",
         "automated": automated,
@@ -218,15 +228,16 @@ def build_report(root: Path, selected: list[str] | None = None) -> dict[str, obj
 
 def print_human(report: dict[str, object]) -> None:
     print(f"review cases: {report['review_case_count']}")
-    print(f"automated cases: {report['automated_case_count']}")
-    print(f"automation coverage: {report['automation_coverage']}")
+    print(f"mapped cases: {report['mapped_case_count']}")
+    print(f"case mappings: {report['mapping_ratio']}")
+    print("execution / behavior verification: not checked")
     unautomated = report["unautomated"]
     orphan = report["orphan_mappings"]
     duplicate = report["duplicate_review_ids"]
     multiple = report["multiple_code_mappings"]
     missing_markers = report["missing_automation_markers"]
     marker_mismatches = report["automation_marker_mismatches"]
-    print(f"unautomated: {', '.join(unautomated) if unautomated else 'none'}")
+    print(f"unmapped: {', '.join(unautomated) if unautomated else 'none'}")
     print(f"orphan mappings: {', '.join(orphan) if orphan else 'none'}")
     print(f"duplicate review IDs: {', '.join(duplicate) if duplicate else 'none'}")
     print(f"cases with multiple code mappings: {', '.join(multiple) if multiple else 'none'}")

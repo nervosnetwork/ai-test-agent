@@ -5,9 +5,11 @@
 Reuse the known checkout and revision; inspect the diff summary, affected behavior and existing cases.
 Read only needed source ranges. Update one review with scope/source, a short before → after note,
 required Spec → 测试树 → 用例 and changed rows using `templates/test-review.md`. Validate the
-selected design, mark unread branches and resume points; stop at G1
-for material case changes. An impact-only question needs a short answer, not new review files.
-Do not launch B, hash a whole workspace or create reports for this path. It is not full-PR acceptance.
+selected design and mark unread branches and resume points. Apply `workflow.md` for material Case
+changes: an impact-only question stops at its answer; authorized review-and-validation work continues
+without another compact G1. An impact-only question needs a short answer, not new review files.
+Do not launch B or hash a whole workspace for this path. Use `execution-evidence.md` only when actual
+execution results are requested. A compact receipt is not full-PR acceptance or independent review.
 
 ## Full PR-v2: explicit request or existing project requirement
 

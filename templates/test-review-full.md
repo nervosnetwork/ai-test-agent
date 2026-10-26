@@ -32,6 +32,12 @@ Testing: required
 | `[AREA-01]` | - [ ] [前置条件]下[操作] | [可观察结果] | [具体故障] | P0 |
 <!-- TEST-CASES-END -->
 
+## 验证设计
+
+- 独立预期：[独立规则／手算／协议向量及关联 Case]
+- 实际入口与观察：[真实触发路径、操作后状态与有效断言]
+- 证明边界：[实际验证层；恶意输入仍满足哪些前提；预期拒绝位置]
+
 <!-- 按实际行为扩展 Spec/分支/用例，不按模板凑数。Spec 字段与标记供校验器解析，保留原样。
 Source: explicit|observation|inference；后两者需人工确认。Testing: required 或 not_tested — 原因。
 每个 Case 唯一 [primary]，复用用 [ref]；未完成分支用 [pending]/[unanalysed] — 原因与下一步。

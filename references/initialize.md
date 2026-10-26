@@ -1,8 +1,9 @@
 # Initialize a Test Project
 
-Initialization has three conversational gates. Complete only the current gate.
+Initialization has three design stages. Follow [workflow.md](workflow.md): stop after the requested
+map/case review in review-only mode; in authorized end-to-end mode complete all requested stages.
 
-## Gate 1: test-area map
+## Stage 1: test-area map
 
 1. Inspect architecture, public entry points, state ownership, build/test commands, CI, and existing tests using targeted reads.
 2. Select only runners or assurance approaches supported by evidence.
@@ -17,19 +18,22 @@ Initialization has three conversational gates. Complete only the current gate.
    ```
 
 4. Fill stable target facts in root `AGENTS.md`.
-5. Replace `reviews/README.md` with a concise hierarchical area map: responsibility, boundary, entry points, observable outcomes, and planned review paths. Split broad areas into coherent capabilities/behavior groups rather than a flat module list. Follow the overview rules in [decomposition.md](decomposition.md); mark unread branches with reasons and next entry points. This is a navigation map, not completed test coverage; keep Case rows for Gate 2.
-6. Present the map and stop. Do not create review rows or tests.
+5. Replace `reviews/README.md` with a concise hierarchical area map: responsibility, boundary, entry points, observable outcomes, and planned review paths. Split broad areas into coherent capabilities/behavior groups rather than a flat module list. Follow the overview rules in [decomposition.md](decomposition.md); mark unread branches with reasons and next entry points. This is a navigation map, not completed test coverage; keep Case rows for Stage 2.
+6. In review-only mode present the map and stop. In end-to-end mode retain the map and continue
+   with the requested review scope; do not ask for another initialization confirmation.
 
-## Gate 2: review cases
+## Stage 2: review cases
 
-After map confirmation, select one review and follow `review-cases.md` with the compact template.
+After map review, select a coherent review and follow `review-cases.md` with the compact template.
 Spec → 测试树 → 用例 is mandatory even for a simple behavior; use `decomposition.md` to expand only
 as far as observable outcomes require. This does not activate PR-v2 or B review. Validate the
-selected design, preserve unfinished frontier nodes, and stop after presenting changed rows.
+selected design and preserve unfinished frontier nodes. Stop after presenting changed rows only
+when the user requested staged review or an actual product decision remains unresolved.
 
-## Gate 3: automation
+## Stage 3: automation
 
-After row confirmation, follow `automation-maintenance.md`. Implement only confirmed IDs.
+Follow `automation-maintenance.md` for confirmed rows or the unambiguous rows covered by the user's
+end-to-end authorization. A pending decision blocks dependent Cases, not the whole unrelated scope.
 
 ## Layout
 
@@ -75,6 +79,7 @@ migration command with `--refresh-plan`. Inspect the rebuilt patch and use its n
 unrefreshed modified proposals are rejected rather than silently applied. Destination changes since
 preview require a fresh plan. No reviews, Case IDs or TEST-MAP comments are renumbered or rewritten. Do not use
 initializer `--force` for a blind upgrade. Add Spec/tree/blocks only to the current behavior, then review
-that baseline at G1. Existing `[x]` Cases start with semantic evidence `not_reviewed`, never `covered`.
+that baseline using `workflow.md` (G1 remains required for full PR-v2). Existing `[x]` Cases start
+with semantic evidence `not_reviewed`, never `covered`.
 Other legacy reviews still participate in global duplicate/structure checks. Without B, keep independent
 review incomplete rather than having A award itself B approval.

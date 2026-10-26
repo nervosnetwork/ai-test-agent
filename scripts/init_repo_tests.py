@@ -9,6 +9,13 @@ from pathlib import Path
 
 
 SUITE_PRESETS = {
+    "security-review": {
+        "label": "Security Review",
+        "focus": "assets, authority, trust boundaries, invariants and validated attack paths; static review is not an executed test",
+        "code_dirs": {
+            "tests": "Executable security counterexamples; manual analysis uses root templates/security-review.md.",
+        },
+    },
     "integration": {
         "label": "Integration",
         "focus": "service lifecycle, cross-component flows, external interfaces, and end-to-end outcomes",

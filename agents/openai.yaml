@@ -1,4 +1,4 @@
 interface:
   display_name: "AI Test Agent"
-  short_description: "Concise case reviews and focused TEST-MAP tests"
-  default_prompt: "Use $ai-test-agent for a compact case review or confirmed direct TEST-MAP tests; read only affected inputs and run focused checks."
+  short_description: "Risk-driven tests with independent oracles and evidence"
+  default_prompt: "Use $ai-test-agent to complete the requested review or authorized end-to-end validation with direct TEST-MAP tests, independent oracles and native execution evidence."

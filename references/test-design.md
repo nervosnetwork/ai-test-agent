@@ -2,6 +2,8 @@
 
 Spec, Markdown nested test tree and the unique Case table are mandatory in every selected review.
 For full PR-v2, use `templates/test-review-full.md` and its additional independent review gates.
+Review-only versus authorized end-to-end behavior follows `workflow.md`; the B/G1 details below
+apply to full PR-v2. Use `verification-quality.md` to review independent oracles and claimed layers.
 Rules are `### SPEC-01：...` headings, never a competing five-column rule table.
 The template's fixed English field keys support deterministic parsing; values may use any language.
 
