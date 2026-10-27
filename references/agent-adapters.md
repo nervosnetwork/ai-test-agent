@@ -36,11 +36,15 @@ attestation; the bundled adapters do not issue one. No backend means independent
 
 ## Recovery and control
 
+The CLI records G1 and evidence states; the first-Case G2 is a conversational gate enforced by
+`workflow-gates.md`. Stop after implementing the first Case and obtain its standards confirmation
+before recording batch `implemented`. CLI success does not record or substitute for that confirmation.
 States: INPUT_READY → DESIGN_READY → DESIGN_REVIEWED → WAITING_HUMAN → DESIGN_CONFIRMED →
 IMPLEMENTED → COVERAGE_REVIEWED → EXECUTED → READY_FOR_ACCEPTANCE. The explicit A `respond`
 transition moves DESIGN_REVIEWED to WAITING_HUMAN; NEEDS_DECISION, BLOCKED and STALE preserve failure reasons. `continue` reports
 current results, not an automatic march past a human gate. `retry` restores a transient blocked stage;
 normal freshness checks and the bounded call count still apply. Use `prepare` for changed design inputs.
+READY_FOR_ACCEPTANCE is a legacy evidence label, not a third human confirmation gate.
 Timeout, malformed/truncated JSON, unavailable B and budget exhaustion never become reviewed/passed.
 Current files replace prior current files; no default unlimited archive.
 

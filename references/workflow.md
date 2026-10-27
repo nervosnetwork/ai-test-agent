@@ -5,15 +5,16 @@ Choose one route for the declared scope, without automatically expanding into ne
 
 | Request | Route | Completion |
 | --- | --- | --- |
-| Propose a map, review cases, or stop for review | Review-only | Present the complete changed rows/map and wait before implementation. |
-| Review then implement/validate/synchronize | End-to-end | Discover, design, self-review, implement, run focused checks and publish to the authorized destination. |
-| Explicit full PR-v2 or a project requirement for it | Full PR-v2 | Keep the existing independent B evidence, exact design confirmation and G1/G2 rules. |
+| Propose a map, review cases, or stop for review | Review-only | Stop at the requested map; for Case design, finish all selected documents and B review before the user's G1 review. |
+| Review then implement/validate/synchronize | Two gates, then end-to-end | Complete G1; implement only the first Case for G2 standards confirmation; then finish the remaining confirmed scope automatically. |
+| Continue an already confirmed scope or intent-preserving maintenance | End-to-end continuation | Reuse G1/G2 confirmations; implement, check and synchronize without repeating them. |
+| Explicit full PR-v2 or a project requirement for it | Full PR-v2 | Use the same two human gates plus independent design/coverage evidence checks, not an additional final human gate. |
 
-In end-to-end work, an area map and changed rows remain reviewable artifacts, not new mandatory
-conversation stops. Complete the requested interfaces in coherent batches. Do not ask for the same
-permission again after a wording change, test-runner repair or routine implementation decision.
-Initialization, existing project maintenance and security work follow the same authorization rule.
-Do not infer end-to-end authorization from a request only to propose or inspect tests.
+Follow [workflow-gates.md](workflow-gates.md) for the exact two stops. An end-to-end request establishes
+scope, not either gate's approval. Do not add a map-only gate or request approval per document, Case,
+test run or final handoff. After G2, complete coherent batches without repeating permission for wording
+changes, test-runner repairs or routine implementation decisions. Initialization and newly designed
+security Cases follow the same gates. Inspection/audit-only questions do not imply test implementation.
 
 Missing business rules remain `待确认：<decision>`. Ask for the actual decision and continue cases
 that do not depend on it; do not turn an implementation observation into an approved requirement.

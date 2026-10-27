@@ -3,17 +3,17 @@
 ## Default: compact impact review
 
 Reuse the known checkout and revision; inspect the diff summary, affected behavior and existing cases.
-Read only needed source ranges. Update one review with scope/source, a short before → after note,
+Read only needed source ranges. Update selected reviews with scope/source, a short before → after note,
 required Spec → 测试树 → 用例 and changed rows using `templates/test-review.md`. Validate the
-selected design and mark unread branches and resume points. Apply `workflow.md` for material Case
-changes: an impact-only question stops at its answer; authorized review-and-validation work continues
-without another compact G1. An impact-only question needs a short answer, not new review files.
-Do not launch B or hash a whole workspace for this path. Use `execution-evidence.md` only when actual
-execution results are requested. A compact receipt is not full-PR acceptance or independent review.
+selected design and mark unread branches and resume points. Complete B design review before G1,
+then use the first-Case G2 in [workflow-gates.md](workflow-gates.md) if automation was requested.
+An impact-only question needs a short answer, not new review files or a B call.
+Do not hash a whole workspace or create full-flow reports for this path. Use `execution-evidence.md`
+for requested runner receipts; a compact receipt is not full-PR acceptance or independent coverage review.
 
 ## Full PR-v2: explicit request or existing project requirement
 
-Use the rest of this reference only for requested independent design/coverage review or a controlled
+Use the rest of this reference only for explicitly requested full PR-v2 evidence or a controlled
 PR-v2 workflow. Continue active scope state without repeating completed stages; never switch modes
 to bypass gates. Use `templates/test-review-full.md`; all existing checks below remain required.
 

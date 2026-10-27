@@ -75,6 +75,12 @@ class ProjectGeneratorTests(unittest.TestCase):
             self.assertIn("## Recursive decomposition", design)
             decomposition = (output / "docs/ai-test-agent/decomposition.md").read_text()
             self.assertIn("Stop only when a leaf", decomposition)
+            # Gate guidance and every other reference must propagate to generated projects.
+            for reference in (ROOT / "references").glob("*.md"):
+                self.assertEqual(
+                    (output / "docs/ai-test-agent" / reference.name).read_text(),
+                    reference.read_text(),
+                )
             self.assertIn("### Depth review before G1", design)
             self.assertIn("Scope limits breadth, not test-tree depth", (output / "AGENTS.md").read_text())
             template = (output / "templates/test-review.md").read_text()
@@ -289,6 +295,31 @@ class SkillContractTests(unittest.TestCase):
     def read_contract(self) -> str:
         paths = [ROOT / "SKILL.md", *sorted((ROOT / "references").glob("*.md"))]
         return "\n".join(path.read_text(encoding="utf-8") for path in paths)
+
+    def test_approved_automation_uses_native_runner_without_full_workflow_state(self) -> None:
+        # Conversational G1/G2 approvals do not require full PR-v2 state or reports.
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "demo-tests"
+            created = run(str(INIT), "--project", "Demo", "--source-repo", "../demo",
+                          "--suites", "api", "--output", str(output))
+            self.assertEqual(created.returncode, 0, created.stdout)
+            review = output / "reviews" / "sample.md"
+            template = (output / "templates" / "test-review.md").read_text()
+            review.write_text(template.replace("[AREA-01]", "AREA-01").replace("- [ ]", "- [x]"))
+            test = output / "suites" / "api" / "tests" / "test_sample.py"
+            test.write_text("import unittest\n\nclass Sample(unittest.TestCase):\n"
+                            "    # TEST-MAP: AREA-01\n"
+                            "    def test_addition(self):\n"
+                            "        self.assertEqual(1 + 1, 2)\n")
+            for script in ("check_test_design.py", "check_test_map.py"):
+                checked = run(str(output / "scripts" / script),
+                              "--review", "reviews/sample.md", cwd=output)
+                self.assertEqual(checked.returncode, 0, checked.stdout)
+            executed = run("-m", "unittest", "discover", "-s", "suites/api/tests", cwd=output)
+            self.assertEqual(executed.returncode, 0, executed.stdout)
+            self.assertIn("Ran 1 test", executed.stdout)
+            for directory in (output / ".ai-test-agent", output / "reports"):
+                self.assertFalse(directory.exists() and any(directory.rglob("*.json")))
 
     def test_corrective_feedback_is_persisted_without_case_status(self) -> None:
         skill = self.read_contract()

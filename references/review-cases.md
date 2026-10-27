@@ -18,13 +18,14 @@ Describe independent expected values, actual entry, fresh observation and claime
 outside the table, grouping Cases sharing one oracle. Follow `verification-quality.md`; production
 fixture construction alone is not an independent expected result.
 
-Run `python3 scripts/check_test_design.py --review <path>` before implementation; its structural checks do
-not establish semantic completeness. Compact review does not invoke B or the full PR-v2 workflow.
+Run `python3 scripts/check_test_design.py --review <path>` once after the changed batch; its structural checks do
+not establish semantic completeness. Complete B's independent design review and address findings using
+[workflow-gates.md](workflow-gates.md); compact work does not activate full PR-v2.
 
-New rows start `- [ ]`; `- [x]` mirrors existing `TEST-MAP` presence. Preserve stable IDs. Present every
-changed row (including deletions). In review-only mode wait before mapped implementation; authorized
-end-to-end work self-reviews and proceeds with unambiguous Cases under `workflow.md`. Full PR-v2 keeps
-G1. Do not paste unchanged rows or resolve unknown product policy by guessing.
+New rows start `- [ ]`; `- [x]` mirrors existing `TEST-MAP` presence. Preserve stable IDs.
+Finish all selected documents and B review before stopping at G1 with every changed row (including
+deletions) for the user's review. After approval, automation requests proceed to one first Case at G2,
+not batch implementation. Case-review-only requests end at G1.
 
 ## Corrective feedback
 

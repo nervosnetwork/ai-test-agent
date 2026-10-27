@@ -1,9 +1,9 @@
 # Spec, tree and B design review
 
 Spec, Markdown nested test tree and the unique Case table are mandatory in every selected review.
-For full PR-v2, use `templates/test-review-full.md` and its additional independent review gates.
-Review-only versus authorized end-to-end behavior follows `workflow.md`; the B/G1 details below
-apply to full PR-v2. Use `verification-quality.md` to review independent oracles and claimed layers.
+All material design work uses the two gates in [workflow-gates.md](workflow-gates.md).
+For full PR-v2, use `templates/test-review-full.md` and the additional evidence checks below, not extra human gates.
+Use `verification-quality.md` to review independent oracles and claimed verification layers.
 Rules are `### SPEC-01：...` headings, never a competing five-column rule table.
 The template's fixed English field keys support deterministic parsing; values may use any language.
 
@@ -84,7 +84,7 @@ Default budget is one full review plus one targeted revision per phase, not one 
 If A changes the reviewed design, `prepare` again and review that version. Exhausted budgets never
 turn critical disagreements into approval; ask the human for a new bounded scope/review budget.
 
-## G1
+## G1 — completed documents and B review
 
 Present the **complete changed row set**, a short change summary and unresolved matters; link the
 current Spec/tree, B diff→Spec accounting, Case/Spec acknowledgements, findings and A responses
@@ -98,5 +98,7 @@ python3 scripts/pr_workflow.py confirm --scope connection-limit \
 Use `--decision '<human resolution>'` for listed ambiguities; a material expectation change first
 requires updated rows and review. Scripts store permission in disposable scope context, not feedback
 or a hand-maintained approval ledger. Same-user local state is not an unforgeable human attestation.
+After G1 confirmation, implement only the first representative Case and stop at G2 for the user's
+standards confirmation; follow `workflow-gates.md` before batch implementation.
 Mapping-only checkbox changes are ignored by the semantic design fingerprint; other text changes,
 priorities, scope, requirements and product inputs are not.

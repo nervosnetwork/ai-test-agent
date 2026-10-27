@@ -9,4 +9,4 @@ Read root `../../AGENTS.md`; this file routes suite work.
 - Follow root authorization. Keep tests direct and readable; abstraction must not hide assertions that prove the expected behavior.
 - For full PR-v2 only, B checks actual code and all selected Cases; gaps belong in current derived reports. B never changes expectations. Only validated managed evidence comments may be rendered automatically.
 - Verify focused commands and `python3 ../../scripts/check_test_map.py`. Preserve native runner selectors and parameter instances.
-- Complete the authorized scope; no automatic B dispatch, scope expansion or CI polling. Mapping, semantic coverage and execution are separate.
+- Complete the authorized scope under root G1/G2; no repeated B dispatch, scope expansion or CI polling. Mapping, semantic coverage and execution are separate.

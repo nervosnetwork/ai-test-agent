@@ -38,5 +38,6 @@ Testing: required
 Source: explicit|observation|inference；后两者需人工确认。Testing: required 或 not_tested — 原因。
 每个 Case 唯一 [primary]，复用用 [ref]；未完成分支用 [pending]/[unanalysed] — 原因与下一步。
 仅有实际问题时追加“待确认”；预期未定写“待确认：具体决定”。完整 PR-v2 使用 test-review-full.md。
-按用户授权选择仅评审或连续完成；仅评审时展示完整变更行并等确认。完整 PR-v2 保留 G1。
+G1：本轮全部测试点文档完成，B 独立审核且意见处理后，展示变更行交用户 review。
+G1 确认后仅编写第一个自动化用例，在 G2 让用户确认规范；确认后其余用例自动实现和验证，不再追加末尾门禁。
 勾选只表示 TEST-MAP 存在；运行结果和安全性质证明分别报告。 -->

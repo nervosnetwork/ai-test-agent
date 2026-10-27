@@ -10,17 +10,12 @@ Case ID = Test Point ID. Preserve IDs; no duplicate case/status ledgers.
 
 ## Default: focused, compact
 
-- Complete the requested scope. Do not automatically continue to the next interface outside it.
-- Select review-only, authorized end-to-end, or full PR-v2 using [workflow](references/workflow.md).
-  An explicit request to review, implement, validate and synchronize authorizes that sequence;
-  do not insert repeated map/row confirmations. Keep unresolved business rules visible and continue
-  independent work. End-to-end authorization does not imply independent review or production actions.
-- Read project instructions and the matching reference. Locate rows and mappings with
-  `check_test_map.py --json`, symbols with `rg`; reuse existing design.
-- Ordinary cases, PR impact and maintenance use the compact path: no B, per-hunk accounting or
-  full PR-v2 state unless requested or required. Existing `.ai-test-agent/`
-  state alone is not a request; do not bypass an active scope's gate. Intent-preserving follow-up
-  edits need no G1, B call, freeze or report. Compact work is not whole-PR acceptance.
+- Complete the requested scope through the two gates below. Do not automatically continue to the next interface.
+- Use [workflow](references/workflow.md) for scope and authorization; end-to-end requests do not replace G1/G2 approvals.
+- Read project instructions, affected rows/mappings and matching references; reuse existing design.
+- Compact work includes B design review, not full PR-v2 accounting/state unless requested or required.
+  Existing `.ai-test-agent/` state alone is not a request; preserve active gates. Intent-preserving
+  follow-up edits need no G1, B call, freeze or report.
 - Use native runners, fixtures and style; isolated builds needed by authorized tests are allowed.
   Use bundled evidence tools instead of ad hoc hash/report scripts.
 - Scope limits breadth, not test-tree depth. Split distinct observable outcomes; group variations
@@ -32,15 +27,18 @@ Case ID = Test Point ID. Preserve IDs; no duplicate case/status ledgers.
 
 ## Review and implementation
 
-Use [templates/test-review.md](templates/test-review.md), including all three sections even for
-simple behavior. Keep its five-column Case table.
+Use [templates/test-review.md](templates/test-review.md), including all three sections and its five-column Case table.
 
 Rows state precondition/action and observable result. P0/P1/P2 denote blocker/important/edge.
 Use `待确认：<decision>` for unresolved expectations. `[x]` means `TEST-MAP` exists, not a pass.
 
-Review-only presents changed rows and stops. Authorized end-to-end self-reviews and implements
-unambiguous Cases without another confirmation. Full PR-v2 retains B and human G1/G2.
-Wording/checkbox edits retain confirmation. Read root feedback before Case revisions.
+Follow [workflow-gates](references/workflow-gates.md):
+1. **G1 — documents:** finish every selected test-point document, complete independent B review and
+   address findings, then stop for the user's review. No automation yet.
+2. **G2 — first case:** after G1 approval, implement only the first representative automated Case;
+   show its code and focused check result, then stop for the user's standards confirmation.
+After G2 approval, implement, run and repair the remaining confirmed Cases automatically. No per-Case
+approval or final human gate. Case-review-only requests end at G1. Read root feedback before revisions.
 
 Implement direct, readable tests; avoid abstraction that hides assertions which prove the expected behavior.
 Use one `TEST-MAP: <CASE-ID>` per native comment and synchronize affected checkboxes.
@@ -61,7 +59,7 @@ stay unknown. Never award yourself independent B review.
 | Help; no target | [help](references/help.md); no repository inspection |
 | Initialize / migrate | [initialize](references/initialize.md) |
 | Add / revise cases | [review-cases](references/review-cases.md) |
-| Confirmed automation | [automation-maintenance](references/automation-maintenance.md) |
+| Implement / maintain automation | [automation-maintenance](references/automation-maintenance.md) |
 | PR impact / explicit full PR-v2 | [pr-analysis](references/pr-analysis.md) |
 | Requested security audit / funds risk | [security-review](references/security-review.md) |
 
@@ -70,7 +68,7 @@ stay unknown. Never award yourself independent B review.
 Default Markdown: scope/source in 1–3 lines, required Spec → 测试树 → 用例, actual open decisions.
 Omit empty sections, N/A lists and tool logs. Edit in place; no summary files.
 
-Chat handoff: changed IDs + result + next decision, normally at most 3 bullets. Link the document
-instead of pasting it; G1 must still expose every changed row for review. For implementation include
-one verification line (command, result, exit status); expand failures or material uncertainty only.
+Chat handoff: changed IDs + result + next decision, at most 3 bullets. Link documents;
+G1 still exposes every changed row. Include verification (command, result, exit status);
+expand failures or material uncertainty only.
 Added automation: group IDs sharing an oracle. Keep mapping, independent review and execution distinct.
