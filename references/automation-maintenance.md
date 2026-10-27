@@ -1,7 +1,8 @@
 # Confirmed automation and maintenance
 
 1. Reuse project instructions, source checkout, affected rows and all corresponding `TEST-MAP` sites.
-   If case intent changes, update rows and stop at G1 before editing mapped automation.
+   If intent changes, update rows and apply `workflow.md`: review-only stops, authorized end-to-end
+   self-reviews unambiguous Cases, and full PR-v2 retains G1.
 2. Implement direct, readable tests with native runners/fixtures. Avoid abstraction that hides
    assertions which prove the expected behavior. Keep setup/action/oracle visible; group shared setup.
 3. Synchronize all affected inputs, actions, assertions, mappings and scenario checkboxes. Remove obsolete
@@ -9,6 +10,11 @@
 4. Run focused deterministic tests, `check_test_design.py --review <path>` and
    `check_test_map.py --review <path>` once after the batch. Broaden
    for affected shared dependencies, not by default. Bound live-network retries; inspect CI once.
+
+Use `verification-quality.md` to check oracle independence, actual entry/observation and rejection
+layer before counting a Case as validated. When execution results are requested, use the existing
+full PR-v2 runner or the compact native receipt in `execution-evidence.md`; no full PR-v2 setup is
+needed merely to record a command. Keep association, reported execution and proven behavior separate.
 
 Report changed IDs, command/result/exit status and any actual gap or next decision. Mapping presence
 is not assertion coverage or execution. Avoid per-case success explanations and extra summary files.

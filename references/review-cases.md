@@ -14,11 +14,17 @@ tutorials. Keep unread branches explicit. For a selected legacy review without t
 add them before materially changing Cases; leave unrelated reviews unchanged. Full PR-v2 additionally
 uses `templates/test-review-full.md` and `test-design.md` for independent review gates.
 
-Run `python3 scripts/check_test_design.py --review <path>` before G1; its structural checks do
+Describe independent expected values, actual entry, fresh observation and claimed verification layer
+outside the table, grouping Cases sharing one oracle. Follow `verification-quality.md`; production
+fixture construction alone is not an independent expected result.
+
+Run `python3 scripts/check_test_design.py --review <path>` before implementation; its structural checks do
 not establish semantic completeness. Compact review does not invoke B or the full PR-v2 workflow.
 
 New rows start `- [ ]`; `- [x]` mirrors existing `TEST-MAP` presence. Preserve stable IDs. Present every
-changed row (including deletions) and wait at G1 before mapped implementation; do not paste unchanged rows.
+changed row (including deletions). In review-only mode wait before mapped implementation; authorized
+end-to-end work self-reviews and proceeds with unambiguous Cases under `workflow.md`. Full PR-v2 keeps
+G1. Do not paste unchanged rows or resolve unknown product policy by guessing.
 
 ## Corrective feedback
 
