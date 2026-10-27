@@ -3,15 +3,16 @@
 ## Default: compact impact review
 
 Reuse the known checkout and revision; inspect the diff summary, affected behavior and existing cases.
-Read only needed source ranges. Update one review with scope/source, a short before → after note,
+Read only needed source ranges. Update selected reviews with scope/source, a short before → after note,
 required Spec → 测试树 → 用例 and changed rows using `templates/test-review.md`. Validate the
-selected design, mark unread branches and resume points; stop at G1
-for material case changes. An impact-only question needs a short answer, not new review files.
-Do not launch B, hash a whole workspace or create reports for this path. It is not full-PR acceptance.
+selected design and mark unread branches and resume points. Complete B design review before G1,
+then use the first-Case G2 in [workflow-gates.md](workflow-gates.md) if automation was requested.
+An impact-only question needs a short answer, not new review files or a B call.
+Do not hash a whole workspace or create full-flow reports for this path. It is not full-PR acceptance.
 
 ## Full PR-v2: explicit request or existing project requirement
 
-Use the rest of this reference only for requested independent design/coverage review or a controlled
+Use the rest of this reference only for explicitly requested full PR-v2 evidence or a controlled
 PR-v2 workflow. Continue active scope state without repeating completed stages; never switch modes
 to bypass gates. Use `templates/test-review-full.md`; all existing checks below remain required.
 

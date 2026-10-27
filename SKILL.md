@@ -10,11 +10,11 @@ Case ID = Test Point ID. Preserve IDs; no duplicate case/status ledgers.
 
 ## Default: focused, compact
 
-- Complete the requested scope and current gate. Do not automatically continue to the next interface.
+- Complete the requested scope through the two gates below. Do not automatically continue to the next interface.
 - Read project instructions and the matching reference. Locate rows and mappings with
   `check_test_map.py --json`, symbols with `rg`; reuse existing design.
-- Ordinary cases, PR impact and maintenance use the compact path: no B, snapshots, per-hunk
-  accounting or reports unless full PR-v2 is requested or required. Existing `.ai-test-agent/`
+- Ordinary work uses compact documents plus B design review, not full PR-v2 snapshots, per-hunk
+  accounting or reports unless requested or required. Existing `.ai-test-agent/`
   state alone is not a request; do not bypass an active scope's gate. Intent-preserving follow-up
   edits need no G1, B call, freeze or report. Compact work is not whole-PR acceptance.
 - Use the project's runner, fixtures and style. No ad hoc scripts for hashes, manifests, reports or
@@ -34,9 +34,13 @@ simple behavior. Keep its five-column Case table.
 Rows state precondition/action and observable result. P0/P1/P2 denote blocker/important/edge.
 Use `待确认：<decision>` for unresolved expectations. `[x]` means `TEST-MAP` exists, not a pass.
 
-For material Case changes, present every changed row and stop at G1. Generate or update mapped tests only after
-explicit human confirmation. Do not combine review and implementation in one handoff.
-Wording/checkbox-only edits retain confirmation. Read root feedback before Case revisions.
+Follow [workflow-gates](references/workflow-gates.md):
+1. **G1 — documents:** finish every selected test-point document, complete independent B review and
+   address findings, then stop for the user's review. No automation yet.
+2. **G2 — first case:** after G1 approval, implement only the first representative automated Case;
+   show its code and focused check result, then stop for the user's standards confirmation.
+After G2 approval, implement, run and repair the remaining confirmed Cases automatically. No per-Case
+approval or final human gate. Case-review-only requests end at G1. Read root feedback before revisions.
 
 Implement direct, readable tests; avoid abstraction that hides assertions which prove the expected behavior.
 Use one `TEST-MAP: <CASE-ID>` per native comment, inspect all affected mappings and synchronize checkboxes.
@@ -54,7 +58,7 @@ Never weaken expectations or change product code just to pass tests.
 | Help; no target | [help](references/help.md); no repository inspection |
 | Initialize / migrate | [initialize](references/initialize.md) |
 | Add / revise cases | [review-cases](references/review-cases.md) |
-| Confirmed automation | [automation-maintenance](references/automation-maintenance.md) |
+| Implement / maintain automation | [automation-maintenance](references/automation-maintenance.md) |
 | PR impact / explicit full PR-v2 | [pr-analysis](references/pr-analysis.md) |
 
 ## Output budget

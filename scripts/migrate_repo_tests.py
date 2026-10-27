@@ -16,7 +16,11 @@ ROOT_GUIDANCE = """
 ## Review design
 
 Every selected review requires Spec → 测试树 → 用例 and design validation, including compact work.
-Migrate only the selected legacy review before material Case changes; this does not invoke B.
+Migrate only selected legacy reviews before material Case changes. Follow
+`docs/ai-test-agent/workflow-gates.md`: finish all selected documents and independent B review before
+the user's G1 review; after approval, implement only the first Case for the user's G2 standards check.
+After G2 confirmation, complete remaining automation, focused runs and fixes without another routine
+human gate. These are conversational approvals; the CLI does not record the first-Case G2.
 
 ## PR v2 workflow
 
@@ -28,8 +32,8 @@ Keep Spec, a Markdown test tree and the only five-column Case table in the selec
 Run design validation, complete B Case/Spec acknowledgements and explicit A responses before the
 existing human gate. G1 binds the
 current scope and design; changing only mapping checkboxes does not change intent.
-After confirmed implementation, follow `docs/ai-test-agent/coverage-review.md` for B evidence,
-managed comments, frozen execution and G2. `TEST-MAP`, semantic coverage and runner results
+After G2 approval and batch implementation, follow `docs/ai-test-agent/coverage-review.md` for automatic
+B evidence, managed comments and frozen execution, not a final human gate. `TEST-MAP`, semantic coverage and runner results
 are distinct. Reports are current derived artifacts under `reports/<scope>/`, never a second
 Case ledger. Local state under `.ai-test-agent/current/` detects drift, not hostile tampering.
 Report a CLI canary as transport tested only; reserve independence for a host attestation. Follow

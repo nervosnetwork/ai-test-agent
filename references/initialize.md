@@ -1,8 +1,9 @@
 # Initialize a Test Project
 
-Initialization has three conversational gates. Complete only the current gate.
+Use the same two human gates as [workflow-gates.md](workflow-gates.md), not a separate map approval.
+Honor an explicit map-only request by stopping at the map; otherwise prepare the selected scope for G1.
 
-## Gate 1: test-area map
+## Preparation: test-area map
 
 1. Inspect architecture, public entry points, state ownership, build/test commands, CI, and existing tests using targeted reads.
 2. Select only runners or assurance approaches supported by evidence.
@@ -17,19 +18,22 @@ Initialization has three conversational gates. Complete only the current gate.
    ```
 
 4. Fill stable target facts in root `AGENTS.md`.
-5. Replace `reviews/README.md` with a concise hierarchical area map: responsibility, boundary, entry points, observable outcomes, and planned review paths. Split broad areas into coherent capabilities/behavior groups rather than a flat module list. Follow the overview rules in [decomposition.md](decomposition.md); mark unread branches with reasons and next entry points. This is a navigation map, not completed test coverage; keep Case rows for Gate 2.
-6. Present the map and stop. Do not create review rows or tests.
+5. Replace `reviews/README.md` with a concise hierarchical area map: responsibility, boundary, entry points, observable outcomes, and planned review paths. Split broad areas into coherent capabilities/behavior groups rather than a flat module list. Follow the overview rules in [decomposition.md](decomposition.md); mark unread branches with reasons and next entry points. This is a navigation map, not completed test coverage; Case rows belong in the selected review documents.
+6. Continue preparing those documents when included in the request; do not write automated tests yet.
 
-## Gate 2: review cases
+## G1: completed test-point documents and B review
 
-After map confirmation, select one review and follow `review-cases.md` with the compact template.
+For all reviews in the requested scope, follow `review-cases.md` with the compact template.
 Spec → 测试树 → 用例 is mandatory even for a simple behavior; use `decomposition.md` to expand only
-as far as observable outcomes require. This does not activate PR-v2 or B review. Validate the
-selected design, preserve unfinished frontier nodes, and stop after presenting changed rows.
+as far as observable outcomes require. This does not activate full PR-v2. Validate the selected design,
+preserve unfinished frontier nodes, complete independent B review and address findings. Then stop
+with all selected documents and changed rows for the user's review.
 
-## Gate 3: automation
+## G2: first automated Case
 
-After row confirmation, follow `automation-maintenance.md`. Implement only confirmed IDs.
+After G1 confirmation, follow `automation-maintenance.md` to implement and check only the first Case.
+Stop for the user's standards confirmation; after approval, automate the remaining confirmed scope
+without per-Case or final human gates.
 
 ## Layout
 

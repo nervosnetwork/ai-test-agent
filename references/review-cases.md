@@ -14,11 +14,14 @@ tutorials. Keep unread branches explicit. For a selected legacy review without t
 add them before materially changing Cases; leave unrelated reviews unchanged. Full PR-v2 additionally
 uses `templates/test-review-full.md` and `test-design.md` for independent review gates.
 
-Run `python3 scripts/check_test_design.py --review <path>` before G1; its structural checks do
-not establish semantic completeness. Compact review does not invoke B or the full PR-v2 workflow.
+Run `python3 scripts/check_test_design.py --review <path>` once after the changed batch; its structural checks do
+not establish semantic completeness. Complete B's independent design review and address findings using
+[workflow-gates.md](workflow-gates.md); compact work does not activate full PR-v2.
 
-New rows start `- [ ]`; `- [x]` mirrors existing `TEST-MAP` presence. Preserve stable IDs. Present every
-changed row (including deletions) and wait at G1 before mapped implementation; do not paste unchanged rows.
+New rows start `- [ ]`; `- [x]` mirrors existing `TEST-MAP` presence. Preserve stable IDs.
+Finish all selected documents and B review before stopping at G1 with every changed row (including
+deletions) for the user's review. After approval, automation requests proceed to one first Case at G2,
+not batch implementation. Case-review-only requests end at G1.
 
 ## Corrective feedback
 

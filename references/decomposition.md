@@ -19,7 +19,7 @@ there is no fixed minimum or maximum and no requirement to pad a simple behavior
    retain grouped fields or equivalent inputs when one coherent Case proves them together.
 4. Link each testable leaf to its stable Case ID and sourced Spec in the same review document.
    Reorganizing the hierarchy alone preserves IDs and rows; reuse `[ref]` rather than duplicate
-   definitions. Keep candidate expectations explicit and subject to G1.
+   definitions. Keep unresolved expectations explicit; pause affected Cases rather than guessing an oracle.
 5. Under context/time pressure, finish a smaller subtree, not a shallower substitute for the whole
    scope. Record each unfinished frontier as `[unanalysed]` (unread evidence) or `[pending]`
    (known decision/work outstanding), with a reason and the next source/decision to inspect. Retain
@@ -27,7 +27,7 @@ there is no fixed minimum or maximum and no requirement to pad a simple behavior
    in-scope missing analysis into an exclusion. If it changes the promised scope, present the reduced
    scope for a human decision; no whole-scope completeness claim while frontier nodes remain.
 
-For whole-project initialization, Gate 1 creates only the hierarchical area map and planned review
-paths, not Case rows. After map confirmation, use the same recursive procedure inside the selected
-Gate 2 review. Other review documents remain unanalysed until selected; depth is not permission to
-advance a gate or start automation.
+For whole-project initialization, prepare the hierarchical area map, then use the same recursive
+procedure inside every review selected for this scope. Complete the documents and B review before
+G1; first-Case implementation follows approval and stops at G2. Unselected reviews remain unanalysed;
+depth is not permission to expand scope or bypass either human gate. Map-only requests stop at the map.

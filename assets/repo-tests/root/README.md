@@ -1,6 +1,6 @@
 # {{PROJECT_NAME}} Tests
 
-This repository stores human-reviewed test intent and automation mapped by `TEST-MAP: <CASE-ID>`.
+This repository stores test intent and automation mapped by `TEST-MAP: <CASE-ID>`.
 
 {{TEST_LAYOUT_DESCRIPTION}}
 
@@ -11,9 +11,11 @@ This repository stores human-reviewed test intent and automation mapped by `TEST
 - `suites/<suite>/`: module-owned executable automation, commands, and fixtures.
 - `scripts/check_test_map.py`: computed mapping coverage.
 
-Work on one review document at a time: write Spec → 测试树 → 用例, validate the design, present
-changed rows, stop for confirmation, implement confirmed cases, then run a focused test and both
-design and mapping checkers. Stable commands follow.
+Use exactly two human gates (`docs/ai-test-agent/workflow-gates.md`):
+1. Finish all selected Spec → 测试树 → 用例 documents and independent B review; stop at G1 for design review.
+2. After approval, implement and check only the first Case; stop at G2 for standards confirmation.
+Then finish the remaining automation, focused runs and fixes automatically, with no final approval gate.
+Case-review-only requests end at G1. Run both checkers once per changed batch. Stable commands follow.
 
 {{COMMANDS_BLOCK}}
 
@@ -23,10 +25,10 @@ python3 scripts/check_test_map.py
 python3 scripts/check_test_map.py --require-complete  # only for intentionally complete scope
 ```
 
-## PR v2
+## PR v2 (explicit opt-in or existing project requirement)
 
 Keep change summary, Spec and test tree with the unique Case table. Independent B reviews design
-before human confirmation, then actual test assertions before final execution. Start with
+before G1, then actual test assertions automatically after first-Case G2 approval. Start with
 `docs/ai-test-agent/pr-analysis.md`. Current derived reports go in ignored `reports/<scope>/`;
 input/gate state goes in ignored `.ai-test-agent/current/<scope>/`. No automatic product merge.
 

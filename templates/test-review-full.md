@@ -35,4 +35,6 @@ Testing: required
 <!-- 按实际行为扩展 Spec/分支/用例，不按模板凑数。Spec 字段与标记供校验器解析，保留原样。
 Source: explicit|observation|inference；后两者需人工确认。Testing: required 或 not_tested — 原因。
 每个 Case 唯一 [primary]，复用用 [ref]；未完成分支用 [pending]/[unanalysed] — 原因与下一步。
-仅有实际问题时添加“待确认”；链接 B 报告和 A 回复，不复制它们。G1 展示全部变更行并停下等待确认。 -->
+仅有实际问题时添加“待确认”；链接 B 报告和 A 回复，不复制它们。
+G1：本轮全部文档及 B 独立审核完成后交用户 review。确认后仅写第一个自动化用例，在 G2 等待用户确认规范。
+G2 确认后自动完成剩余实现、覆盖审核及执行，不追加末尾人工门禁。 -->

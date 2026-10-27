@@ -2,7 +2,8 @@
 
 ## Inputs and semantic review
 
-A freezes implementation with `pr_workflow.py implemented --scope <scope>` after G1 and checkbox sync.
+A freezes implementation with `pr_workflow.py implemented --scope <scope>` after the first-Case G2
+approval, batch implementation and checkbox sync. This full-flow phase runs automatically, not at a new human gate.
 B receives all selected Cases, confirmed Spec, actual test/helper/fixture code, necessary product paths
 and available execution outputs. B must inspect code, not only TEST-MAP, test names or A explanations.
 For every Case explain real setup, triggered path, new observation, effective assertions and limits.
@@ -51,7 +52,7 @@ results conservatively. Re-run `implemented` after fixing tests without changing
 material design changes return to G1. Do not weaken assertions, loosen thresholds, skip failing tests
 or patch product code merely to make the result green.
 
-## Execution and G2
+## Automatic execution after G2
 
 The command/cwd are fixed in the manifest. Tests receive a minimal environment without model keys,
 production secrets or real wallet assets. Add a project-specific isolated runner for extra environment
@@ -67,10 +68,14 @@ the generic runner leaves unknown causes `unclassified` rather than guessing.
 `coverage.md` contains every selected Case, gap-first, and links complete code evidence in `coverage.json`.
 Use `check_test_evidence.py --details` only when expanded binding/assertion Markdown is requested. P0 and explicit
 `--require-case` Cases need current covered evidence and corresponding stable pass results. Current
-implementation conservatively routes **any** remaining gap, unverified B or unresolved decision to G2;
-it has no automated risk-waiver service. Human-accepted deferrals must remain visible and do not turn
+implementation conservatively reports **any** remaining gap, unverified B or unresolved decision as
+non-ready evidence; this is a diagnostic, not the first-Case G2 or an extra routine approval stop.
+After G2, repair in-scope test defects and rerun affected checks automatically. Surface genuine unresolved
+requirements, environment or evidence limitations explicitly; do not claim them resolved or ask for a
+blanket final approval. Human-accepted deferrals must remain visible and do not turn
 missing into covered. Read `acceptance.json` through a trusted external operator/CI entry if strong
-control is needed. `ready_for_acceptance` means ready for human acceptance, never automatic PR merge.
+control is needed. The legacy `ready_for_acceptance` label denotes evidence readiness, not another
+required human gate and never automatic PR merge.
 
 Sample covered/high-risk Cases as well as B-reported gaps. Optional local fault injection or old-fails /
 new-passes checks can assess oracle quality when appropriate. They are not default production actions.
