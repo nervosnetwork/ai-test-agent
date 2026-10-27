@@ -8,6 +8,9 @@ B receives all selected Cases, confirmed Spec, actual test/helper/fixture code, 
 and available execution outputs. B must inspect code, not only TEST-MAP, test names or A explanations.
 For every Case explain real setup, triggered path, new observation, effective assertions and limits.
 Check mocks, waits, retries, swallowed exceptions, stale observations, tautologies and runner collection.
+Apply `verification-quality.md`: locate the independent oracle, actual product entry and fresh
+observation, and distinguish the claimed validation layer. For security negatives, verify a valid
+baseline and signatures/prerequisites reaching the intended checker; attribute the rejection.
 Performance needs workload/metric/threshold/conditions; fuzz needs input domain, seeds/budget and actual
 results. A finite run never establishes all-input coverage.
 

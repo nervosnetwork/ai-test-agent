@@ -115,6 +115,7 @@ Testing: required
 - 其余用例的场景、结果和优先级是否符合接口契约。
 
 <!--
-Review this document before generating any automated test code. After explicit
-confirmation, tests map directly with comments such as: TEST-MAP: RPC-02
+Review-only work stops before implementation. Authorized end-to-end work can self-review and
+implement unambiguous Cases; keep RPC-07's business decision pending. Tests map directly with
+comments such as: TEST-MAP: RPC-02. Mapping alone never establishes execution or behavior proof.
 -->

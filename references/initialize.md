@@ -79,6 +79,7 @@ migration command with `--refresh-plan`. Inspect the rebuilt patch and use its n
 unrefreshed modified proposals are rejected rather than silently applied. Destination changes since
 preview require a fresh plan. No reviews, Case IDs or TEST-MAP comments are renumbered or rewritten. Do not use
 initializer `--force` for a blind upgrade. Add Spec/tree/blocks only to the current behavior, then review
-that baseline at G1. Existing `[x]` Cases start with semantic evidence `not_reviewed`, never `covered`.
+that baseline using `workflow.md` (G1 remains required for full PR-v2). Existing `[x]` Cases start
+with semantic evidence `not_reviewed`, never `covered`.
 Other legacy reviews still participate in global duplicate/structure checks. Without B, keep independent
 review incomplete rather than having A award itself B approval.

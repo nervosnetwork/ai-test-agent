@@ -8,7 +8,8 @@ required Spec → 测试树 → 用例 and changed rows using `templates/test-re
 selected design and mark unread branches and resume points. Complete B design review before G1,
 then use the first-Case G2 in [workflow-gates.md](workflow-gates.md) if automation was requested.
 An impact-only question needs a short answer, not new review files or a B call.
-Do not hash a whole workspace or create full-flow reports for this path. It is not full-PR acceptance.
+Do not hash a whole workspace or create full-flow reports for this path. Use `execution-evidence.md`
+for requested runner receipts; a compact receipt is not full-PR acceptance or independent coverage review.
 
 ## Full PR-v2: explicit request or existing project requirement
 

@@ -3,6 +3,7 @@
 Spec, Markdown nested test tree and the unique Case table are mandatory in every selected review.
 All material design work uses the two gates in [workflow-gates.md](workflow-gates.md).
 For full PR-v2, use `templates/test-review-full.md` and the additional evidence checks below, not extra human gates.
+Use `verification-quality.md` to review independent oracles and claimed verification layers.
 Rules are `### SPEC-01：...` headings, never a competing five-column rule table.
 The template's fixed English field keys support deterministic parsing; values may use any language.
 

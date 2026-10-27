@@ -14,6 +14,10 @@ tutorials. Keep unread branches explicit. For a selected legacy review without t
 add them before materially changing Cases; leave unrelated reviews unchanged. Full PR-v2 additionally
 uses `templates/test-review-full.md` and `test-design.md` for independent review gates.
 
+Describe independent expected values, actual entry, fresh observation and claimed verification layer
+outside the table, grouping Cases sharing one oracle. Follow `verification-quality.md`; production
+fixture construction alone is not an independent expected result.
+
 Run `python3 scripts/check_test_design.py --review <path>` once after the changed batch; its structural checks do
 not establish semantic completeness. Complete B's independent design review and address findings using
 [workflow-gates.md](workflow-gates.md); compact work does not activate full PR-v2.

@@ -1,6 +1,6 @@
 ---
 name: ai-test-agent
-description: Maintain standalone test projects with concise review cases, stable Case IDs and TEST-MAP automation. Use for case review, mapped-test maintenance or PR test impact; skip routine unit-test edits without review documents.
+description: Design and validate standalone acceptance tests or requested security reviews with independent oracles, stable Case IDs and reproducible evidence. Use for case review, mapped-test maintenance or PR test impact; skip routine unit-test edits without review documents.
 ---
 
 # AI Test Agent
@@ -11,25 +11,23 @@ Case ID = Test Point ID. Preserve IDs; no duplicate case/status ledgers.
 ## Default: focused, compact
 
 - Complete the requested scope through the two gates below. Do not automatically continue to the next interface.
-- Read project instructions and the matching reference. Locate rows and mappings with
-  `check_test_map.py --json`, symbols with `rg`; reuse existing design.
-- Ordinary work uses compact documents plus B design review, not full PR-v2 snapshots, per-hunk
-  accounting or reports unless requested or required. Existing `.ai-test-agent/`
-  state alone is not a request; do not bypass an active scope's gate. Intent-preserving follow-up
-  edits need no G1, B call, freeze or report. Compact work is not whole-PR acceptance.
-- Use the project's runner, fixtures and style. No ad hoc scripts for hashes, manifests, reports or
-  annotations; no product builds, run harnesses or other-language edits unless requested.
+- Use [workflow](references/workflow.md) for scope and authorization; end-to-end requests do not replace G1/G2 approvals.
+- Read project instructions, affected rows/mappings and matching references; reuse existing design.
+- Compact work includes B design review, not full PR-v2 accounting/state unless requested or required.
+  Existing `.ai-test-agent/` state alone is not a request; preserve active gates. Intent-preserving
+  follow-up edits need no G1, B call, freeze or report.
+- Use native runners, fixtures and style; isolated builds needed by authorized tests are allowed.
+  Use bundled evidence tools instead of ad hoc hash/report scripts.
 - Scope limits breadth, not test-tree depth. Split distinct observable outcomes; group variations
   sharing setup, action and oracle; mark unread branches with a resume point.
-- Every selected review requires **Spec → 测试树 → 用例** in one document, including compact work:
-  sourced rules, linked testable leaves, and Case scenarios/oracles.
+- Reviews require **Spec → 测试树 → 用例**. State oracle, entry, observation and verification layer
+  outside the table; follow [verification quality](references/verification-quality.md).
 - Run focused tests and both checkers once after changes; broaden only for affected shared
   dependencies. Bound network retries. Do not repeatedly poll CI or reread unchanged files.
 
 ## Review and implementation
 
-Use [templates/test-review.md](templates/test-review.md), including all three sections even for
-simple behavior. Keep its five-column Case table.
+Use [templates/test-review.md](templates/test-review.md), including all three sections and its five-column Case table.
 
 Rows state precondition/action and observable result. P0/P1/P2 denote blocker/important/edge.
 Use `待确认：<decision>` for unresolved expectations. `[x]` means `TEST-MAP` exists, not a pass.
@@ -43,13 +41,16 @@ After G2 approval, implement, run and repair the remaining confirmed Cases autom
 approval or final human gate. Case-review-only requests end at G1. Read root feedback before revisions.
 
 Implement direct, readable tests; avoid abstraction that hides assertions which prove the expected behavior.
-Use one `TEST-MAP: <CASE-ID>` per native comment, inspect all affected mappings and synchronize checkboxes.
+Use one `TEST-MAP: <CASE-ID>` per native comment and synchronize affected checkboxes.
 Python tests: mapping above definition; numbered Chinese docstring steps; matching numbered code-block comments.
 See the [format](references/automation-maintenance.md#test-comment-format).
 Run `scripts/check_test_design.py --review <path>` for structural links and
 `scripts/check_test_map.py --review <path>` after automation for mapping. Migrate selected legacy
 reviews for material Case changes, not unrelated reviews.
 Never weaken expectations or change product code just to pass tests.
+`TEST-MAP` proves association only. Runner outcomes do not prove the asserted security property.
+Use [execution evidence](references/execution-evidence.md) for requested results; unsupported counts
+stay unknown. Never award yourself independent B review.
 
 ## Read only the needed route
 
@@ -60,13 +61,14 @@ Never weaken expectations or change product code just to pass tests.
 | Add / revise cases | [review-cases](references/review-cases.md) |
 | Implement / maintain automation | [automation-maintenance](references/automation-maintenance.md) |
 | PR impact / explicit full PR-v2 | [pr-analysis](references/pr-analysis.md) |
+| Requested security audit / funds risk | [security-review](references/security-review.md) |
 
 ## Output budget
 
 Default Markdown: scope/source in 1–3 lines, required Spec → 测试树 → 用例, actual open decisions.
 Omit empty sections, N/A lists and tool logs. Edit in place; no summary files.
 
-Chat handoff: changed IDs + result + next decision, normally at most 3 bullets. Link the document
-instead of pasting it; G1 must still expose every changed row for review. For implementation include
-one verification line (command, result, exit status); expand failures or material uncertainty only.
+Chat handoff: changed IDs + result + next decision, at most 3 bullets. Link documents;
+G1 still exposes every changed row. Include verification (command, result, exit status);
+expand failures or material uncertainty only.
 Added automation: group IDs sharing an oracle. Keep mapping, independent review and execution distinct.

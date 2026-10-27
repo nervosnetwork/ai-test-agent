@@ -12,6 +12,11 @@
    `check_test_map.py --review <path>` once after the batch. Broaden
    for affected shared dependencies, not by default. Bound live-network retries; inspect CI once.
 
+Use `verification-quality.md` to check oracle independence, actual entry/observation and rejection
+layer before counting a Case as validated. When execution results are requested, use the existing
+full PR-v2 runner or the compact native receipt in `execution-evidence.md`; no full PR-v2 setup is
+needed merely to record a command. Keep association, reported execution and proven behavior separate.
+
 Report changed IDs, command/result/exit status and any actual gap or next decision. Mapping presence
 is not assertion coverage or execution. Avoid per-case success explanations and extra summary files.
 Never weaken expectations or modify product code merely to turn a run green.

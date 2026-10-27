@@ -28,10 +28,16 @@ Testing: required
 | `[AREA-01]` | - [ ] [前置条件]下[操作] | [可观察结果] | [具体故障] | P0 |
 <!-- TEST-CASES-END -->
 
+## 验证设计
+
+- 独立预期：[预期值／规则的独立来源；共用同一 oracle 的用例合并说明]
+- 实际入口与观察：[经过什么真实路径、操作后检查什么新结果]
+- 证明边界：[host／HTTP／浏览器注入／实际 VM／真实节点；反例应在何处拒绝]
+
 <!-- 删除本注释和未使用的占位项，但保留 Spec、测试树、用例三节及两个 TEST 块标记。
 Source: explicit|observation|inference；后两者需人工确认。Testing: required 或 not_tested — 原因。
 每个 Case 唯一 [primary]，复用用 [ref]；未完成分支用 [pending]/[unanalysed] — 原因与下一步。
 仅有实际问题时追加“待确认”；预期未定写“待确认：具体决定”。完整 PR-v2 使用 test-review-full.md。
 G1：本轮全部测试点文档完成，B 独立审核且意见处理后，展示变更行交用户 review。
 G1 确认后仅编写第一个自动化用例，在 G2 让用户确认规范；确认后其余用例自动实现和验证，不再追加末尾门禁。
-勾选只表示 TEST-MAP 存在。 -->
+勾选只表示 TEST-MAP 存在；运行结果和安全性质证明分别报告。 -->
