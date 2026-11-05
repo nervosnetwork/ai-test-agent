@@ -15,7 +15,6 @@ from check_test_design import check_design
 from check_test_evidence import build_evidence_report, render_report, validate_coverage, SCHEMA_ROOT
 from check_test_map import build_report
 from diff_spec_coverage import diff_inventory, validate_diff_coverage, require_complete_diff_coverage
-from evidence_annotations import render_python, annotation_lines
 from workflow_lib import (VERSION, design_hash, digest, fingerprint, freeze_inputs, fresh_inputs, git, inside,
                           product_state, read_json, revision, scope_paths, snapshot, validate_schema, write_json, run_bounded)
 
@@ -56,7 +55,7 @@ def prepare(root, state):
                   'design_decisions': design['needs_decision'],
                   'design_input': freeze_inputs(root, state), 'design_fingerprint': design['design_fingerprint'],
                   'stage': 'DESIGN_READY'})
-    for key in ('approval', 'coverage_input', 'final_input', 'annotation_receipt', 'coverage_adapter',
+    for key in ('approval', 'coverage_input', 'final_input', 'coverage_adapter',
                 'design_adapter', 'design_review_hash', 'design_response_hash', 'design_review_report_hash'):
         state.pop(key, None)
 
@@ -205,52 +204,13 @@ def respond(root, state, reports, args):
     state['stage'] = 'WAITING_HUMAN'
 
 
-def annotate(root, state, reports):
-    require(state, 'COVERAGE_REVIEWED')
-    frozen = state['coverage_input']
-    if not fresh_inputs(root, state, state.get('final_input') or frozen):
-        state['stage'] = 'STALE'
-        raise ValueError("implementation changed after B review")
-    coverage = read_json(reports / 'coverage.json')
-    errors = validate_coverage(root, state, coverage)
-    if errors:
-        raise ValueError('; '.join(errors))
-    grouped, proposed = {}, []
-    for case in coverage['cases']:
-        for binding in case['bindings']:
-            grouped.setdefault(binding['file'], []).append((case, binding))
-    changes, planned = {}, {}
-    for name, entries in grouped.items():
-        path = inside(root, name)
-        before = path.read_bytes().decode('utf-8')
-        if path.suffix != '.py':
-            for case, binding in entries:
-                proposed.append({'file': name, 'symbol': binding['symbol'], 'case_id': case['case_id'],
-                                 'suggested_comment': annotation_lines(case, binding, '')})
-            continue
-        after = render_python(before, entries)
-        planned[name] = after
-        if before != after:
-            changes[name] = {'before': digest(path.read_bytes()), 'after': digest(after.encode())}
-    # Validate every proposed file before writing any of them.
-    for name, after in planned.items():
-        inside(root, name).write_bytes(after.encode('utf-8'))
-    state['final_input'] = freeze_inputs(root, state)
-    if changes or 'annotation_receipt' not in state:
-        state['annotation_receipt'] = {'from': frozen['fingerprint'], 'to': state['final_input']['fingerprint'],
-                                       'changes': changes, 'validation': 'Python AST + tokens + exact unmanaged text'}
-    write_json(reports / 'annotation-receipt.json', state['annotation_receipt'])
-    write_json(reports / 'annotation-proposals.json', proposed)
-
-
 def run_tests(root, state, reports, args):
     require(state, 'COVERAGE_REVIEWED', 'EXECUTED')
     check_baseline(root, state)
-    frozen = state.get('final_input') or state['coverage_input']
+    frozen = state['coverage_input']
     if not fresh_inputs(root, state, frozen):
         state['stage'] = 'STALE'
-        raise ValueError("execution input differs from B input/validated annotations")
-    state['final_input'] = frozen
+        raise ValueError("execution input differs from B-reviewed input")
     result_path = reports / 'runner-results.json'
     result_path.unlink(missing_ok=True)
     output = reports / 'execution.log'
@@ -330,7 +290,7 @@ def main():
     analyze.add_argument('--cwd', default='.')
     analyze.add_argument('--scope-boundary', required=True, help='Selected slice and other unanalysed parts')
     analyze.add_argument('--max-review-calls', type=int, default=2, help='Per phase, initial review plus one revision')
-    for name in ('prepare', 'review', 'respond', 'confirm', 'implemented', 'annotate', 'run', 'continue', 'retry'):
+    for name in ('prepare', 'review', 'respond', 'confirm', 'implemented', 'run', 'continue', 'retry'):
         sub = subs.add_parser(name)
         sub.add_argument('--scope', required=True)
         if name == 'confirm':
@@ -431,8 +391,6 @@ def main():
                     raise ValueError('mapping structure/checkbox errors; run check_test_map.py')
                 state.update({'stage': 'IMPLEMENTED', 'coverage_input': freeze_inputs(root, state)})
                 state.pop('final_input', None)
-            elif args.operation == 'annotate':
-                annotate(root, state, reports)
             elif args.operation == 'run':
                 run_tests(root, state, reports, args)
             elif args.operation == 'continue':

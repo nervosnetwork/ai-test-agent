@@ -9,7 +9,7 @@ from pathlib import Path
 
 from check_test_map import build_report
 from check_test_design import check_design
-from evidence_annotations import symbols
+from python_symbols import symbols
 from workflow_lib import inside, read_json, scope_paths, validate_schema, fresh_inputs, digest, fingerprint
 
 SCHEMA_ROOT = Path(__file__).resolve().parent.parent / "schemas"
@@ -114,7 +114,7 @@ def build_evidence_report(root: Path, state: dict, coverage=None, execution=None
             records = {item["case_id"]: item for item in coverage["cases"]}
         except (ValueError, KeyError, TypeError, OSError, SyntaxError) as error:
             errors.append(f"invalid coverage: {error}")
-    frozen = state.get("final_input") or state.get("coverage_input")
+    frozen = state.get("coverage_input")
     try:
         current = frozen is not None and fresh_inputs(root, state, frozen)
     except (ValueError, OSError):

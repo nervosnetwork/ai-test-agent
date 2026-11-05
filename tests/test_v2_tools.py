@@ -16,7 +16,6 @@ from check_test_map import build_report
 from check_test_design import check_design
 from check_test_evidence import build_evidence_report, validate_coverage, execution_for, render_report
 from pr_workflow import validate_design_review
-from evidence_annotations import render_python, verify_comments_only
 from workflow_lib import (design_hash, freeze_inputs, fresh_inputs, git, read_json, fingerprint,
                           snapshot, digest, validate_schema, write_json)
 from migrate_repo_tests import preview, apply, refresh
@@ -55,6 +54,8 @@ CODE = '''import unittest
 class Admission(unittest.TestCase):
     # TEST-MAP: API-01
     def test_valid(self):
+        """1. 输入有效值，检查转换后的结果。"""
+        # 1. 输入有效值并检查结果。
         value = int("3")
         self.assertEqual(value, 3)
 '''
@@ -482,48 +483,6 @@ class EvidenceTests(Fixture):
         self.assertTrue(build_evidence_report(self.root, self.state, self.coverage)['errors'])
 
 
-class AnnotationTests(Fixture):
-    def test_idempotent_managed_comments_preserve_code(self):
-        case = self.coverage['cases'][0]
-        entries = [(case, case['bindings'][0])]
-        first = render_python(CODE, entries)
-        self.assertIn('TEST-EVIDENCE-BEGIN: API-01', first)
-        self.assertEqual(render_python(first, entries), first)
-        verify_comments_only(CODE, first)
-        self.assertIn('# TEST-MAP: API-01', first)
-
-    def test_directives_and_docstrings_preserved(self):
-        code = CODE.replace('    # TEST-MAP', '    # type: ignore\n    # TEST-MAP').replace('        value', '        """Example: >>> 1 + 1"""\n        value')
-        case = self.coverage['cases'][0]
-        result = render_python(code, [(case, case['bindings'][0])])
-        self.assertIn('# type: ignore', result)
-        self.assertIn('>>> 1 + 1', result)
-        with self.assertRaises(ValueError):
-            verify_comments_only(code, result.replace('# type: ignore', '# type: noignore'))
-        with self.assertRaises(ValueError):
-            verify_comments_only(code, result.replace('self.assertEqual(value, 3)', 'self.assertEqual(value, 4)'))
-
-    def test_tool_directive_inside_managed_block_rejected(self):
-        bad = CODE.replace('    def test_valid', '    # TEST-EVIDENCE-BEGIN: API-01\n    # type: ignore\n    # TEST-EVIDENCE-END: API-01\n    def test_valid')
-        case = self.coverage['cases'][0]
-        with self.assertRaises(ValueError):
-            render_python(bad, [(case, case['bindings'][0])])
-
-    def test_markers_inside_strings_are_not_comments(self):
-        code = 'message = """\n# TEST-EVIDENCE-BEGIN: API-01\n# arbitrary string\n# TEST-EVIDENCE-END: API-01\n"""\n' + CODE
-        case = self.coverage['cases'][0]
-        result = render_python(code, [(case, case['bindings'][0])])
-        self.assertIn('# arbitrary string', result)
-        verify_comments_only(code, result)
-
-    def test_generated_text_cannot_become_python_or_pragma(self):
-        case = self.coverage['cases'][0]
-        case['bindings'][0]['setup'] = 'x\n# type: ignore\nprint("unexpected")'
-        result = render_python(CODE, [(case, case['bindings'][0])])
-        self.assertIn('# Evidence | # type: ignore', result)
-        verify_comments_only(CODE, result)
-
-
 class WorkflowTests(Fixture):
     def test_g1_waits_for_a_response_to_every_b_finding(self):
         self.analyze()
@@ -624,14 +583,9 @@ class WorkflowTests(Fixture):
 
     def test_full_cli_flow_missing_case_never_accepted(self):
         self.full_coverage()
-        self.assertOK(self.workflow('annotate', '--scope', 'limit'))
-        first = self.code.read_bytes()
-        receipt = read_json(self.root / 'reports/limit/annotation-receipt.json')
-        self.assertTrue(receipt['changes'])
-        self.assertOK(self.workflow('annotate', '--scope', 'limit'))
-        self.assertEqual(self.code.read_bytes(), first)
-        self.assertEqual(receipt, read_json(self.root / 'reports/limit/annotation-receipt.json'))
+        reviewed_code = self.code.read_bytes()
         self.assertOK(self.workflow('run', '--scope', 'limit'))
+        self.assertEqual(self.code.read_bytes(), reviewed_code)
         execution = read_json(self.root / 'reports/limit/execution.json')
         self.assertEqual(execution['exit_code'], 0)
         self.assertEqual(execution['collected'], 1)
@@ -686,26 +640,6 @@ class WorkflowTests(Fixture):
         self.assertEqual(execution['status'], 'blocked')
         self.assertEqual(execution['failure_kind'], 'runner_or_timeout')
         self.assertIn('started', (self.root / 'reports/limit/execution.log').read_text())
-
-    def test_unsupported_language_is_proposed_not_modified(self):
-        # Same-state imported evidence; this test exercises only the comment renderer boundary.
-        from pr_workflow import annotate
-        rust = put(self.root, 'suites/api/tests/sample.rs', '// TEST-MAP: API-02\nfn test_limit() { assert!(true); }\n')
-        self.review.write_text(REVIEW.replace('- [ ] limit', '- [x] limit'))
-        self.state['coverage_input'] = freeze_inputs(self.root, self.state)
-        self.coverage['input_fingerprint'] = self.state['coverage_input']['fingerprint']
-        self.coverage['cases'][1]['coverage'] = 'partial'
-        b = copy.deepcopy(self.coverage['cases'][0]['bindings'][0])
-        b.update({'file':'suites/api/tests/sample.rs', 'symbol':'test_limit', 'runner_selector':'test_limit',
-                  'assertions':[], 'missing':['no real admission trigger']})
-        self.coverage['cases'][1]['bindings'] = [b]
-        reports = self.root / 'reports/limit'
-        write_json(reports / 'coverage.json', self.coverage)
-        before = rust.read_bytes()
-        annotate(self.root, self.state, reports)
-        self.assertEqual(rust.read_bytes(), before)
-        proposals = read_json(reports / 'annotation-proposals.json')
-        self.assertEqual(proposals[0]['case_id'], 'API-02')
 
     def test_budget_exhaustion_is_needs_decision(self):
         self.advance_design()
