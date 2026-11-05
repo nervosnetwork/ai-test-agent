@@ -21,7 +21,6 @@ The script verifies structure and literal code locations; it cannot establish as
 
 ```sh
 python3 scripts/pr_workflow.py review --scope <scope> --phase coverage --backend <codex|claude>
-python3 scripts/pr_workflow.py annotate --scope <scope>
 python3 scripts/pr_workflow.py run --scope <scope> --timeout 120
 python3 scripts/pr_workflow.py continue --scope <scope>
 python3 scripts/check_test_evidence.py --scope <scope> --require-reviewed --json
@@ -38,22 +37,20 @@ Covered needs specific assertions and no known binding gaps. Missing implementat
 but always appears in the report. Parameter selectors identify actual instances; function-level success
 does not cover unexecuted parameters. Multiple mappings may jointly establish one Case; explain them.
 
-## Single-source annotations
+## Coverage evidence and test comments
 
-Both report and comments are rendered from B's structured record. Python managed blocks use
-`# TEST-EVIDENCE-BEGIN/END: <ID>` and `# Evidence | ...` content. Existing unmanaged comments,
-pragma directives, collection decorators, doctests and executable code are preserved byte-for-byte
-outside those blocks. Python AST and token checks validate each render before any write. Repeat renders
-are idempotent. Unsupported languages produce `annotation-proposals.json` for a language-aware human
-review; they are never auto-edited or advertised as validated comment-only changes.
+B's structured record is saved in `coverage.json` and rendered in `coverage.md`.
+Keep test-source comments in the project format: Python uses `TEST-MAP` above the definition,
+numbered Chinese docstring steps and matching numbered comments before code blocks; see
+[automation-maintenance.md](automation-maintenance.md#test-comment-format). Coverage review
+never inserts evidence blocks into test files. If code lacks an assertion, record the gap in
+coverage evidence rather than describing an imaginary check.
 
-Comments explain stable verification, not a last-passed timestamp, model name or embedded source hash.
-If code lacks an assertion, describe the gap, never an imaginary check. B input snapshot and final
-execution snapshot are separate; a receipt records verified managed-comment changes. All other changes
-return to B. Product head, semantic design, tests, dependencies, fixtures and config invalidate scope
-results conservatively. Re-run `implemented` after fixing tests without changing confirmed intent;
-material design changes return to G1. Do not weaken assertions, loosen thresholds, skip failing tests
-or patch product code merely to make the result green.
+B input snapshot and execution snapshot refer to the same reviewed test files. Product head,
+semantic design, tests, dependencies, fixtures and config invalidate scope results conservatively.
+Re-run `implemented` after fixing tests without changing confirmed intent; material design changes
+return to G1. Do not weaken assertions, loosen thresholds, skip failing tests or patch product code
+merely to make the result green.
 
 ## Automatic execution after G2
 

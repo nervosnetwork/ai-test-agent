@@ -26,7 +26,7 @@ compact path even inside a PR-v2 scope: no G1, B call, freeze or report. Edit, r
 
 For ordinary PR impact use the compact route in `pr-analysis.md`. For an active or explicitly requested
 full PR-v2 scope, follow `coverage-review.md` after G2 and batch implementation: freeze implementation,
-independent B coverage evidence, managed comments and frozen execution, without a final human gate.
+independent B coverage evidence and frozen execution, without a final human gate.
 Changed design returns to G1; changed test dependencies return to B coverage review automatically.
 Compact work claims only its actual B design review, not independently reviewed implementation coverage.
 
