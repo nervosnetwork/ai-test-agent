@@ -2,6 +2,7 @@
 
 Read the selected rows, matching mappings, relevant source and root feedback only. Derive cases from
 observable inputs/results/state changes; inspect additional paths when the evidence requires them.
+Apply the project's Case preferences before admitting Cases ([case-preferences.md](case-preferences.md)).
 Group variations with the same operation and oracle; separate independently failing outcomes.
 
 Use `templates/test-review.md`: **Spec → 测试树 → 用例** is required for every selected review,
@@ -9,10 +10,28 @@ including simple behaviors and compact PR impact. Cite each observable rule's ba
 into a Markdown hierarchy, and link every testable leaf to a Spec and stable Case ID
 ([decomposition.md](decomposition.md)). The unique five-column table supplies scenarios and oracles.
 Keep cells to one concise sentence or short clauses; put shared setup above the table once. Omit
-only empty optional question sections, stock risks, exhaustive N/A lists, execution logs and
-tutorials. Keep unread branches explicit. For a selected legacy review without these sections,
+only stock risks, exhaustive N/A lists, execution logs and tutorials. Keep unread branches explicit. For a selected legacy review without these sections,
 add them before materially changing Cases; leave unrelated reviews unchanged. Full PR-v2 additionally
 uses `templates/test-review-full.md` and `test-design.md` for independent review gates.
+
+## Reader-first layout
+
+Derive in the order Spec → 测试树 → 用例, then lay the review out for someone who has not read the
+diff, as the template does. The checker validates links, not section order.
+
+1. **导读** — purpose, externally visible before → after, the main risks, and what the project's
+   Case preferences let you test or exclude. Plain words; no Case IDs or internal function names.
+2. **需要你决定** — every open human decision with its Case IDs; `无` when there is none. Each Case
+   whose expected result is `待确认` must be listed: the checker rejects a list that omits one, so
+   the reviewer can trust the lead without scanning every row.
+3. **用例** — shared conventions once (environment and roles, reusable constructions, how a result
+   is judged, wait windows), then the five-column table in tree order.
+4. **测试树 / Spec / 验证设计** — the appendix, read for provenance or when automating.
+
+A Spec is a rule, not a Case. One Spec covers the Cases that share the rule and its source; split
+when either differs, and never restate each Case as its own Spec. Write Spec fields as list items
+so they render on separate lines. Legacy reviews stay valid: the checker only warns about a
+missing 导读 or an uncollected `待确认`.
 
 Describe independent expected values, actual entry, fresh observation and claimed verification layer
 outside the table, grouping Cases sharing one oracle. Follow `verification-quality.md`; production

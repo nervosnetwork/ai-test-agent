@@ -15,7 +15,8 @@ the full PR-v2 machinery or require a host-attestation service.
 Address actionable findings and have B check material revisions before presenting the final design.
 Do not label A's self-review as independent B review or missing B work as completed. Keep reviewer
 identity, findings and their resolution available; link existing evidence rather than duplicate reports.
-Stop with every changed row, the completed documents and B's outcome for the user's review.
+Stop with 导读 and 需要你决定 first, then every changed row, the completed documents and B's outcome
+for the user's review.
 Unresolved requirement decisions are explicit at this handoff, never silently chosen by A.
 Write no automated Cases before the user's explicit design approval. A case-review-only task ends here.
 

@@ -16,6 +16,8 @@ ROOT_GUIDANCE = """
 ## Review design
 
 Every selected review requires Spec → 测试树 → 用例 and design validation, including compact work.
+Project rules under `## Case preferences` are binding for design; see
+`docs/ai-test-agent/case-preferences.md`.
 Migrate only selected legacy reviews before material Case changes. Follow
 `docs/ai-test-agent/workflow-gates.md`: finish all selected documents and independent B review before
 the user's G1 review; after approval, implement only the first Case for the user's G2 standards check.

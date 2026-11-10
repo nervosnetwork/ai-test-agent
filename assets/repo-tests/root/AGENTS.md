@@ -10,6 +10,12 @@
 
 {{SUITE_LIST}}
 
+## Case preferences
+
+[Project-owned: test layer, required setup and observation, what not to generate, cost limits.]
+Binding for design (`docs/ai-test-agent/case-preferences.md`): leaves that fail are listed as
+untestable, not designed.
+
 ## Workflow
 
 Follow `docs/ai-test-agent/workflow.md` for scope and authorization; reuse completed confirmations.
@@ -19,7 +25,8 @@ and present G2 for standards confirmation. Then finish remaining confirmed Cases
 without per-Case or final human gates. End-to-end scope authorization is not either gate's approval.
 Map-only requests stop at the map; unknown business rules block dependent Cases only.
 
-Use `templates/test-review.md`: Spec → 测试树 → 用例, sourced rules, linked leaves and stable IDs.
+Use `templates/test-review.md` reader-first: 导读 and 需要你决定 lead, then 用例, 测试树 and Spec with
+sourced rules, linked leaves and stable IDs.
 Scope limits breadth, not test-tree depth. Keep unread branches and resume points explicit; use
 `docs/ai-test-agent/decomposition.md` as needed. Migrate only selected legacy reviews for material
 changes. Preserve `用例 | 场景 | 预期结果 | 防止的问题 | 优先级`; `[x]` means TEST-MAP only.

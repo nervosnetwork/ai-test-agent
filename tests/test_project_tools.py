@@ -338,8 +338,11 @@ class SkillContractTests(unittest.TestCase):
 
     def test_review_template_uses_scenario_checkbox_without_automation_column(self) -> None:
         template = (ROOT / "templates" / "test-review.md").read_text(encoding="utf-8")
-        self.assertLess(template.index("## Spec"), template.index("## 测试树"))
-        self.assertLess(template.index("## 测试树"), template.index("## 用例"))
+        # Reader-first: purpose and open decisions lead, Cases follow, provenance is the appendix.
+        order = ["## 导读", "## 需要你决定", "## 用例", "## 测试树", "## Spec", "## 验证设计"]
+        positions = [template.index(heading) for heading in order]
+        self.assertEqual(positions, sorted(positions))
+        self.assertIn("- Condition: ", template)
         self.assertIn("<!-- TEST-TREE-BEGIN -->", template)
         self.assertIn("<!-- TEST-CASES-BEGIN -->", template)
         self.assertIn("| 用例 | 场景 | 预期结果 | 防止的问题 | 优先级 |", template)
@@ -347,6 +350,26 @@ class SkillContractTests(unittest.TestCase):
         self.assertNotIn("| 状态 |", template)
         self.assertNotIn("| 自动化 |", template)
         self.assertNotIn("TP-[", template)
+
+    def test_worked_example_follows_the_template_and_passes_the_checkers(self) -> None:
+        example = (ROOT / "templates" / "examples" / "rpc-submit-transaction-review.md").read_text(
+            encoding="utf-8"
+        )
+        order = ["## 导读", "## 需要你决定", "## 用例", "## 测试树", "## Spec", "## 验证设计"]
+        positions = [example.index(heading) for heading in order]
+        self.assertEqual(positions, sorted(positions))
+        # Agents imitate the example more than the rules: fewer Specs than Cases, no self-review.
+        self.assertLess(example.count("\n### SPEC-"), example.count("\n| `RPC-"))
+        self.assertNotIn("self-review", example)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "reviews").mkdir()
+            (root / "reviews" / "sample.md").write_text(example, encoding="utf-8")
+            for script in ("check_test_design.py", "check_test_map.py"):
+                checked = run(str(ROOT / "scripts" / script), "--root", str(root),
+                              "--review", "reviews/sample.md")
+                self.assertEqual(checked.returncode, 0, checked.stdout)
+                self.assertNotIn("warning:", checked.stdout)
 
     def test_automation_guidance_requires_simple_tests_and_explained_assertions(self) -> None:
         skill = self.read_contract()
@@ -396,6 +419,30 @@ class SkillContractTests(unittest.TestCase):
         ]:
             self.assertTrue((ROOT / "references" / reference).is_file(), reference)
             self.assertIn(f"references/{reference}", skill)
+
+    def test_project_case_preferences_are_binding_and_project_owned(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        preferences = (ROOT / "references" / "case-preferences.md").read_text(encoding="utf-8")
+        agents = (ROOT / "assets" / "repo-tests" / "root" / "AGENTS.md").read_text(
+            encoding="utf-8"
+        )
+        suite_agents = (ROOT / "assets" / "repo-tests" / "suite" / "AGENTS.md").read_text(
+            encoding="utf-8"
+        )
+        decomposition = (ROOT / "references" / "decomposition.md").read_text(encoding="utf-8")
+
+        self.assertIn("references/case-preferences.md", skill)
+        self.assertIn("## Case preferences", agents)
+        self.assertIn("docs/ai-test-agent/case-preferences.md", agents)
+        self.assertIn("Case preferences", suite_agents)
+        self.assertIn("case-preferences.md", decomposition)
+        for required in ("treat it as binding", "is not a Case", "Do not invent a preference"):
+            self.assertIn(required, preferences)
+        # The skill carries the mechanism only; a concrete layer is the project's to state.
+        for content in (skill, preferences, agents, suite_agents):
+            self.assertNotIn("black-box", content.lower())
+        # Generated evidence comments were removed; suite guidance must not mention them.
+        self.assertNotIn("evidence comments", suite_agents)
 
     def test_reviews_are_central_and_automation_is_suite_owned(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

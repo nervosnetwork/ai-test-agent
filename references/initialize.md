@@ -17,7 +17,8 @@ Honor an explicit map-only request by stopping at the map; otherwise prepare the
      --output <test-project>
    ```
 
-4. Fill stable target facts in root `AGENTS.md`.
+4. Fill stable target facts in root `AGENTS.md`. Ask the user for the project's `## Case preferences`
+   ([case-preferences.md](case-preferences.md)); do not guess them.
 5. Replace `reviews/README.md` with a concise hierarchical area map: responsibility, boundary, entry points, observable outcomes, and planned review paths. Split broad areas into coherent capabilities/behavior groups rather than a flat module list. Follow the overview rules in [decomposition.md](decomposition.md); mark unread branches with reasons and next entry points. This is a navigation map, not completed test coverage; Case rows belong in the selected review documents.
 6. Continue preparing those documents when included in the request; do not write automated tests yet.
 
