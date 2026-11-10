@@ -17,6 +17,8 @@ there is no fixed minimum or maximum and no requirement to pad a simple behavior
    result, and remaining variations share the same operation and oracle. A module, function, or
    label such as “normal/errors/boundaries” alone is not a testable leaf. Split mixed outcomes;
    retain grouped fields or equivalent inputs when one coherent Case proves them together.
+   A leaf also satisfies the project's Case preferences ([case-preferences.md](case-preferences.md));
+   one that does not is `[not_applicable] — 不符合用例偏好：<reason>`, not a Case.
 4. Link each testable leaf to its stable Case ID and sourced Spec in the same review document.
    Reorganizing the hierarchy alone preserves IDs and rows; reuse `[ref]` rather than duplicate
    definitions. Keep unresolved expectations explicit; pause affected Cases rather than guessing an oracle.

@@ -11,7 +11,8 @@ Keep this prose outside the five-column table; reuse common setup rather than re
 - **Observation:** the new response, state transition, recipient/value or side effect asserted after
   the operation. Distinguish a fresh observation from cached state and mocked return values.
 - **Layer:** what this evidence establishes and what it does not. Host checks, injected wallets,
-  RPC mocks, actual script execution and a real-node funds flow are separate layers.
+  RPC mocks, actual script execution and a real-node funds flow are separate layers. When the
+  project's Case preferences name a layer, a Case claims that layer; other evidence does not satisfy it.
 
 For security-sensitive negative cases, prove a valid baseline reaches the intended layer. Change the
 attack-relevant input while keeping prerequisites valid, then assert the rejection source and unchanged

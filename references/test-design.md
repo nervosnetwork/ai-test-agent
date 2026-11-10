@@ -1,13 +1,15 @@
 # Spec, tree and B design review
 
 Spec, Markdown nested test tree and the unique Case table are mandatory in every selected review.
+Lay them out reader-first (`review-cases.md`); section order is not validated.
 All material design work uses the two gates in [workflow-gates.md](workflow-gates.md).
 For full PR-v2, use `templates/test-review-full.md` and the additional evidence checks below, not extra human gates.
 Use `verification-quality.md` to review independent oracles and claimed verification layers.
 Rules are `### SPEC-01：...` headings, never a competing five-column rule table.
 The template's fixed English field keys support deterministic parsing; values may use any language.
 
-- `Condition`, `Expected`, `Observable`, `Basis`, `Source`, `Testing` are required.
+- `Condition`, `Expected`, `Observable`, `Basis`, `Source`, `Testing` are required, as plain lines
+  or list items.
 - `Source: explicit|observation|inference`; observations/inferences remain explicit human decisions.
 - `Testing: required`, or `Testing: not_tested — <reason>`.
 - Place the tree between `TEST-TREE-BEGIN/END` HTML comments and cases between `TEST-CASES-BEGIN/END`.
@@ -22,8 +24,8 @@ A omitted an entire behavior. Unmarked legacy reviews remain supported by the ma
 need explicit blocks/Spec/tree when selected for design validation.
 
 Keep prose terse: shared context once, short rule values, tree labels plus IDs rather than repeated
-case descriptions. Link B reports/responses instead of copying them into the review. Omit empty
-question sections; preserve the required Spec fields, markers and complete changed rows.
+case descriptions. Link B reports/responses instead of copying them into the review. Keep 需要你决定
+(`无` when empty); preserve the required Spec fields, markers and complete changed rows.
 
 ## Recursive decomposition
 

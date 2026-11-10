@@ -3,6 +3,8 @@
 ## Default: compact impact review
 
 Reuse the known checkout and revision; inspect the diff summary, affected behavior and existing cases.
+State which changed behavior is testable under the project's Case preferences
+([case-preferences.md](case-preferences.md)) before listing Cases; the rest is reported, not designed.
 Read only needed source ranges. Update selected reviews with scope/source, a short before → after note,
 required Spec → 测试树 → 用例 and changed rows using `templates/test-review.md`. Validate the
 selected design and mark unread branches and resume points. Complete B design review before G1,

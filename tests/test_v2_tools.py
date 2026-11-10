@@ -322,11 +322,65 @@ class DesignTests(Fixture):
                 self.assertTrue(check_design(self.root, self.state['reviews'])['errors'])
         self.review.write_text(REVIEW)
 
-    def test_selected_review_requires_spec_tree_case_order(self):
+    def test_reader_first_section_order_is_accepted(self):
+        # Links are validated, not position: Spec may follow the tree and the Case table.
         spec, rest = REVIEW.split('## Tree\n', 1)
-        self.review.write_text('## Tree\n' + rest + '\n' + spec)
+        self.review.write_text('## 导读\n\n- purpose\n\n## Tree\n' + rest + '\n' + spec)
+        design = check_design(self.root, self.state['reviews'])
+        self.assertEqual(design['errors'], [])
+        self.assertEqual(design['warnings'], [])
+        self.assertEqual(design['spec_refs'], {'API-01': ['reviews/api/limit.md#spec-01'],
+                                               'API-02': ['reviews/api/limit.md#spec-01']})
+        self.review.write_text(REVIEW)
+
+    def test_missing_lead_is_a_warning_not_an_error(self):
+        design = check_design(self.root, self.state['reviews'])
+        self.assertEqual(design['errors'], [])
+        self.assertTrue(any('导读' in warning for warning in design['warnings']))
+        shown = cli('check_test_design.py', '--root', str(self.root), '--review', 'reviews/api/limit.md')
+        self.assertEqual(shown.returncode, 0, shown.stdout)
+        self.assertIn('warning: reviews/api/limit.md: no 导读 section', shown.stdout)
+
+    def test_pending_cases_must_be_listed_under_decisions(self):
+        pending = REVIEW.replace('rejected without mutation', '待确认：reject or queue')
+        # A legacy review without the section is only reminded to collect the decision.
+        self.review.write_text(pending)
+        design = check_design(self.root, self.state['reviews'])
+        self.assertEqual(design['errors'], [])
+        self.assertTrue(any('需要你决定' in warning and 'API-02' in warning for warning in design['warnings']))
+        # Once the section exists the reviewer relies on it, so an omitted Case is an error.
+        self.review.write_text(pending.replace('## Tree\n', '## 需要你决定\n\n- API-01: unrelated\n\n## Tree\n'))
         errors = check_design(self.root, self.state['reviews'])['errors']
-        self.assertTrue(any('Spec → test tree → cases order' in error for error in errors))
+        self.assertEqual(errors, ['API-02: pending decision is missing from 需要你决定'])
+        self.review.write_text(pending.replace('## Tree\n', '## 需要你决定\n\n- API-02：reject or queue?\n\n## Tree\n'))
+        design = check_design(self.root, self.state['reviews'])
+        self.assertEqual(design['errors'], [])
+        self.assertIn('API-02: 待确认：reject or queue', design['needs_decision'])
+        self.review.write_text(REVIEW)
+
+    def test_tree_labels_may_contain_identifier_like_words(self):
+        # SHA-256, ERC-20 or EIP-1559 in a label are prose, not dangling Case IDs.
+        self.review.write_text(REVIEW.replace(
+            '  - API-02 [primary] -> SPEC-01: rejected',
+            '  - SHA-256 digest over an ERC-20 transfer (EIP-1559): API-02 [primary] -> SPEC-01'))
+        self.assertEqual(check_design(self.root, self.state['reviews'])['errors'], [])
+        # A mistyped Case ID that carries a marker is still reported.
+        self.review.write_text(REVIEW.replace('API-02 [primary] -> SPEC-01: rejected',
+                                              'API-09 [primary] -> SPEC-01: rejected'))
+        errors = check_design(self.root, self.state['reviews'])['errors']
+        self.assertIn('reviews/api/limit.md: dangling tree case API-09', errors)
+        self.review.write_text(REVIEW)
+
+    def test_spec_fields_may_be_list_items(self):
+        listed = REVIEW
+        for label in ('Condition', 'Expected', 'Observable', 'Basis', 'Source', 'Testing'):
+            listed = listed.replace(f'\n{label}: ', f'\n- {label}: ')
+        self.assertIn('- Source: explicit', listed)
+        self.review.write_text(listed)
+        self.assertEqual(check_design(self.root, self.state['reviews'])['errors'], [])
+        self.review.write_text(listed.replace('- Source: explicit', '- Source: guess'))
+        self.assertTrue(any('invalid Source' in error
+                            for error in check_design(self.root, self.state['reviews'])['errors']))
         self.review.write_text(REVIEW)
 
     def test_design_hash_ignores_only_case_checkboxes(self):

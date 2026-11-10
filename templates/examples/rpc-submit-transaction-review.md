@@ -1,9 +1,22 @@
-# `submit_transaction` RPC 用例评审
+# `submit_transaction` RPC 用例
 
-评审范围：确认交易提交接口的成功、输入校验、下游失败和重复提交行为  
-源码版本：示例 revision
+## 导读
 
-## 接口说明
+- **这个接口做什么**：客户端用 `submit_transaction` 提交一笔已签名的交易。接口检查参数、解码交易、交给交易接纳服务，然后返回交易哈希或错误码。签名、手续费、持久化和广播由其他模块负责，不在本评审范围内。
+- **最怕出什么问题**：被拒绝或没被接纳的交易返回了成功；非法或超大的请求拖垮接口；客户端重试让同一笔交易被处理两次。
+- **能测到什么**：本示例项目的用例偏好是黑盒，所以通过 JSON-RPC 调用真实节点，观察返回值和随后查询到的交易池。
+- **测不到的**：接纳服务被调用了几次是内部细节，外部看不到；用“交易池里只有一条”代替。
+
+依据：下方接口说明；示例 revision。未实际运行。
+
+## 需要你决定
+
+- RPC-07：重复提交同一笔交易，是两次都返回相同哈希，还是第二次返回约定的重复错误。
+- RPC-04：超大请求沿用 `-32602` 还是单独的错误码。
+
+## 用例
+
+公共约定：所有请求发往同一个运行中的节点；“交易池不变”指操作前后各查询一次交易池，结果相同；接纳服务不可用通过停止该服务构造。
 
 请求：
 
@@ -11,111 +24,90 @@
 {"jsonrpc":"2.0","id":1,"method":"submit_transaction","params":{"raw_tx":"0x010203..."}}
 ```
 
-成功：返回交易哈希。
+成功时返回交易哈希：
 
 ```json
 {"jsonrpc":"2.0","id":1,"result":{"tx_hash":"0xabc123..."}}
 ```
 
-失败：参数错误返回 `-32602`；交易被接纳服务拒绝返回 `-32010`；接纳服务不可用返回 `-32001`。
+失败时：参数错误返回 `-32602`；交易被接纳服务拒绝返回 `-32010`；接纳服务不可用返回 `-32001`。
 
-接口负责参数检查、交易解码、调用交易接纳服务并返回结果；签名、手续费、持久化和广播规则由其他模块负责。
-
-## Spec
-
-### SPEC-01：成功提交
-Condition: 交易格式正确且接纳服务接受
-Expected: 只调用一次接纳服务并返回交易哈希
-Observable: RPC 结果包含接纳后的哈希
-Basis: 上述接口说明；示例 revision
-Source: explicit
-Testing: required
-
-### SPEC-02：缺少参数
-Condition: 请求缺少 raw_tx
-Expected: 拒绝请求且不调用接纳服务
-Observable: RPC 返回 -32602
-Basis: 上述接口说明；示例 revision
-Source: explicit
-Testing: required
-
-### SPEC-03：非法编码
-Condition: raw_tx 编码不合法
-Expected: 拒绝请求且服务保持可用
-Observable: RPC 返回 -32602；进程继续响应
-Basis: 上述接口说明；示例 revision
-Source: explicit
-Testing: required
-
-### SPEC-04：请求过大
-Condition: 解码后的交易超过大小限制
-Expected: 在接纳前拒绝并限制资源使用
-Observable: RPC 返回拒绝；接纳服务未调用
-Basis: 示例 revision 的请求大小限制；错误码待确认
-Source: inference
-Testing: required
-
-### SPEC-05：接纳服务拒绝
-Condition: 交易可解码但被接纳服务拒绝
-Expected: 返回拒绝原因且不入队
-Observable: RPC 返回 -32010
-Basis: 上述接口说明；示例 revision
-Source: explicit
-Testing: required
-
-### SPEC-06：接纳服务不可用
-Condition: 接纳服务超时或不可用
-Expected: 返回失败且后续请求可继续处理
-Observable: RPC 返回 -32001 且无交易哈希
-Basis: 上述接口说明；示例 revision
-Source: explicit
-Testing: required
-
-### SPEC-07：重复提交
-Condition: 连续两次提交同一笔有效交易
-Expected: 待确认：幂等成功或约定的重复错误；不能重复入队
-Observable: 第二次 RPC 结果与入队次数
-Basis: 示例 revision；重复提交契约待确认
-Source: inference
-Testing: required
+<!-- TEST-CASES-BEGIN -->
+| 用例 | 场景 | 预期结果 | 防止的问题 | 优先级 |
+| --- | --- | --- | --- | --- |
+| `RPC-01` | - [ ] 提交格式正确且可以被接纳的交易 | 返回交易哈希；交易池里能查到这笔交易，且只有一条 | 正常交易提交失败，或同一请求被处理多次 | P0 |
+| `RPC-02` | - [ ] 请求中缺少 `raw_tx` | 返回 `-32602`；交易池不变 | 不完整请求进入核心交易逻辑 | P1 |
+| `RPC-03` | - [ ] `raw_tx` 没有 `0x` 前缀、含非十六进制字符或长度为奇数 | 返回 `-32602`；交易池不变；随后一次正常请求仍然成功 | 非法编码造成错误提交或服务异常 | P1 |
+| `RPC-04` | - [ ] 提交解码后超过大小限制的交易 | 请求被拒绝，交易池不变；随后一次正常请求仍然成功。待确认：错误码 | 超大请求耗尽内存或 CPU | P1 |
+| `RPC-05` | - [ ] 交易能解码，但接纳服务拒绝该交易 | 返回 `-32010` 和拒绝原因；交易池不变 | 被拒绝的交易被报告为成功 | P0 |
+| `RPC-06` | - [ ] 接纳服务已停止时提交交易 | 返回 `-32001`，不返回交易哈希；服务恢复后同一请求成功 | 下游故障被报告为成功，或一次故障拖垮接口 | P1 |
+| `RPC-07` | - [ ] 连续两次提交同一笔有效交易 | 待确认：两次返回相同哈希，或第二次返回约定的重复错误；交易池里只有一条 | 客户端重试导致重复处理 | P1 |
+<!-- TEST-CASES-END -->
 
 ## 测试树
 
 <!-- TEST-TREE-BEGIN -->
 - 交易提交
   - 接纳成功：RPC-01 [primary] -> SPEC-01
-  - 输入拒绝
+  - 输入被拒绝
     - 缺少参数：RPC-02 [primary] -> SPEC-02
-    - 非法编码：RPC-03 [primary] -> SPEC-03
-    - 超过大小限制：RPC-04 [primary] -> SPEC-04
+    - 非法编码：RPC-03 [primary] -> SPEC-02
+    - 超过大小限制：RPC-04 [primary] -> SPEC-03
   - 接纳失败
-    - 明确拒绝：RPC-05 [primary] -> SPEC-05
-    - 超时或不可用：RPC-06 [primary] -> SPEC-06
-  - 重复请求：RPC-07 [primary] -> SPEC-07
+    - 明确拒绝：RPC-05 [primary] -> SPEC-04
+    - 服务不可用：RPC-06 [primary] -> SPEC-04
+  - 重复提交：RPC-07 [primary] -> SPEC-05
+  - 接纳服务的调用次数 [not_applicable] — 不符合用例偏好：内部调用次数外部不可见
 <!-- TEST-TREE-END -->
 
-## 用例
+## Spec
 
-<!-- TEST-CASES-BEGIN -->
-| 用例 | 场景 | 预期结果 | 防止的问题 | 优先级 |
-| --- | --- | --- | --- | --- |
-| `RPC-01` | - [ ] 提交格式正确且可以被接纳的交易 | 接纳服务只调用一次；返回接纳后的交易哈希 | 正常交易提交失败，或者同一请求被处理多次 | P0 |
-| `RPC-02` | - [ ] 请求中缺少 `raw_tx` | 返回 `-32602`；不调用接纳服务 | 不完整请求进入核心交易逻辑 | P1 |
-| `RPC-03` | - [ ] `raw_tx` 没有 `0x` 前缀、包含非十六进制字符或长度为奇数 | 返回 `-32602`；不调用接纳服务；RPC 进程保持正常 | 非法编码造成错误交易提交或服务异常 | P1 |
-| `RPC-04` | - [ ] 解码后的交易超过请求大小限制 | 在调用接纳服务前拒绝；资源使用不超过配置限制 | 超大请求造成内存或 CPU 资源耗尽 | P1 |
-| `RPC-05` | - [ ] 交易能解码，但接纳服务拒绝该交易 | 返回 `-32010` 和拒绝原因；交易不入队 | 被拒绝的交易被错误报告为成功 | P0 |
-| `RPC-06` | - [ ] 接纳服务超时或不可用 | 返回 `-32001`；不返回交易哈希；下一次请求仍能处理 | 下游故障被错误报告为成功，或单次超时拖垮接口 | P1 |
-| `RPC-07` | - [ ] 连续两次提交同一笔有效交易 | 待确认：两次返回相同哈希，或者第二次返回约定的重复错误；不得产生两次入队副作用 | 客户端重试时产生重复处理或不兼容行为 | P1 |
-<!-- TEST-CASES-END -->
+### SPEC-01：成功提交
+- Condition: 交易格式正确且接纳服务接受
+- Expected: 返回交易哈希，交易进入交易池一次
+- Observable: RPC 结果与交易池查询
+- Basis: 上述接口说明；示例 revision
+- Source: explicit
+- Testing: required
 
-## 本轮需要确认
+### SPEC-02：格式无效的输入在接纳前被拒绝
+- Condition: 缺少 `raw_tx`，或 `raw_tx` 编码不合法
+- Expected: 返回参数错误，交易不进入交易池，接口保持可用
+- Observable: RPC 返回 `-32602`；交易池不变；后续请求成功
+- Basis: 上述接口说明；示例 revision
+- Source: explicit
+- Testing: required
 
-- `RPC-07`：重复提交究竟是幂等成功还是返回重复错误。
-- `RPC-04`：超大请求使用 `-32602` 还是单独的错误码。
-- 其余用例的场景、结果和优先级是否符合接口契约。
+### SPEC-03：超过大小限制的请求被拒绝
+- Condition: 解码后的交易超过大小限制
+- Expected: 在接纳前拒绝，接口保持可用
+- Observable: RPC 返回拒绝；交易池不变；后续请求成功
+- Basis: 示例 revision 的请求大小限制；错误码未写明
+- Source: inference
+- Testing: required
 
-<!--
-Review-only work stops before implementation. Authorized end-to-end work can self-review and
-implement unambiguous Cases; keep RPC-07's business decision pending. Tests map directly with
-comments such as: TEST-MAP: RPC-02. Mapping alone never establishes execution or behavior proof.
--->
+### SPEC-04：接纳失败如实返回
+- Condition: 接纳服务拒绝交易，或接纳服务不可用
+- Expected: 返回对应错误码，不返回交易哈希，交易不入池；服务恢复后可继续处理
+- Observable: RPC 返回 `-32010` 或 `-32001`；交易池不变
+- Basis: 上述接口说明；示例 revision
+- Source: explicit
+- Testing: required
+
+### SPEC-05：重复提交不产生重复处理
+- Condition: 连续两次提交同一笔有效交易
+- Expected: 待确认：幂等成功或约定的重复错误；交易池里只有一条
+- Observable: 第二次 RPC 结果与交易池
+- Basis: 示例 revision；重复提交的契约未写明
+- Source: inference
+- Testing: required
+
+## 验证设计
+
+- 独立预期：错误码取自接口说明；“交易池里只有一条”由测试在操作前后各查询一次交易池得出，不读接口内部的计数。
+- 实际入口与观察：JSON-RPC 调用真实节点；每次操作后重新查询交易池，并确认节点仍然响应。
+- 证明边界：按项目用例偏好只做黑盒，证明调用方可见的返回值和交易池状态；不证明接纳服务内部的调用次数，也不证明广播和持久化。
+
+<!-- 示例要点：7 个用例对应 5 条规则；RPC-02、RPC-03 规则和来源相同，共用 SPEC-02，
+RPC-04 的来源是推断，所以单列 SPEC-03。评审类请求在 G1 停下；RPC-04、RPC-07 的决定未定前不实现。
+TEST-MAP 只表示用例与代码的关联，不代表已执行或行为已被证明。 -->

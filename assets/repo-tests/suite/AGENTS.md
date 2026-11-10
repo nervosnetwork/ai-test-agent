@@ -6,7 +6,7 @@ Read root `../../AGENTS.md`; this file routes suite work.
 - Reviews: root `../../reviews/`; executable areas: {{CODE_DIRS}}; reusable inputs: `fixtures/`.
 - Read root corrective feedback before case changes.
 - Keep globally unique Case IDs, nearby `TEST-MAP` comments and matching scenario checkboxes.
-- Follow root authorization. Keep tests direct and readable; abstraction must not hide assertions that prove the expected behavior.
-- For full PR-v2 only, B checks actual code and all selected Cases; gaps belong in current derived reports. B never changes expectations. Only validated managed evidence comments may be rendered automatically.
+- Follow root authorization and Case preferences. Keep tests direct and readable; abstraction must not hide assertions that prove the expected behavior.
+- For full PR-v2 only, B checks actual code and all selected Cases; gaps belong in current derived reports. B never changes expectations.
 - Verify focused commands and `python3 ../../scripts/check_test_map.py`. Preserve native runner selectors and parameter instances.
 - Complete the authorized scope under root G1/G2; no repeated B dispatch, scope expansion or CI polling. Mapping, semantic coverage and execution are separate.
