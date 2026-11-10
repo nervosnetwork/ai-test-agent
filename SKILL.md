@@ -1,6 +1,6 @@
 ---
 name: ai-test-agent
-description: Design and validate standalone acceptance tests or requested security reviews with independent oracles, stable Case IDs and reproducible evidence. Use for case review, mapped-test maintenance or PR test impact; skip routine unit-test edits without review documents.
+description: Design and validate standalone acceptance tests or requested security reviews with independent oracles, stable Case IDs and reproducible evidence. Use for case review, mapped-test maintenance, PR test impact or 费曼模式 PR learning; skip routine unit-test edits without review documents.
 ---
 
 # AI Test Agent
@@ -29,7 +29,7 @@ Case ID = Test Point ID. Preserve IDs; no duplicate case/status ledgers.
 
 ## Review and implementation
 
-Use [templates/test-review.md](templates/test-review.md) in its reader-first order (导读, 需要你决定, 用例, then tree/Spec) with its five-column Case table.
+Use [templates/test-review.md](templates/test-review.md) in its reader-first order with its five-column Case table.
 
 Rows state precondition/action and observable result. P0/P1/P2 denote blocker/important/edge.
 Use `待确认：<decision>` for unresolved expectations. `[x]` means `TEST-MAP` exists, not a pass.
@@ -59,6 +59,7 @@ stay unknown. Never award yourself independent B review.
 | Request | Reference |
 | --- | --- |
 | Help; no target | [help](references/help.md); no repository inspection |
+| 费曼模式 | [feynman](references/feynman.md) |
 | Initialize / migrate | [initialize](references/initialize.md) |
 | Add / revise cases | [review-cases](references/review-cases.md) |
 | Implement / maintain automation | [automation-maintenance](references/automation-maintenance.md) |
