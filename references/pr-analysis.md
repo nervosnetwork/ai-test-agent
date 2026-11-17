@@ -1,5 +1,9 @@
 # PR analysis
 
+For an explicitly requested security review of a cross-component PR, map the
+changed producer-consumer contracts as described in `security-review.md`.
+Ordinary PR impact analysis does not automatically authorize a security audit.
+
 ## Default: compact impact review
 
 Reuse the known checkout and revision; inspect the diff summary, affected behavior and existing cases.
