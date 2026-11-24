@@ -2,6 +2,7 @@
 
 Return only the relevant prompt; do not inspect repositories for a help-only question.
 
+- Learn a PR first: `Use $ai-test-agent 费曼模式：<PR>` — you explain, the agent finds the gaps; no files or gates.
 - Initialize: `Use $ai-test-agent to initialize a test project for <source>; propose the area map and stop.`
 - Cases only: `Use $ai-test-agent in <test-project> to revise <behavior> cases; do not implement tests.`
 - Design: `Use $ai-test-agent in <test-project> to finish <scope> test-point documents and independent B review, then stop for my review at G1.`

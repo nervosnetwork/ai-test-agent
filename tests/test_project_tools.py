@@ -444,6 +444,27 @@ class SkillContractTests(unittest.TestCase):
         # Generated evidence comments were removed; suite guidance must not mention them.
         self.assertNotIn("evidence comments", suite_agents)
 
+    def test_feynman_mode_is_a_conversation_without_documents_or_gates(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        feynman = (ROOT / "references" / "feynman.md").read_text(encoding="utf-8")
+        usage = (ROOT / "references" / "help.md").read_text(encoding="utf-8")
+
+        # The trigger phrase must reach the skill description, the route table and the usage help.
+        description = next(line for line in skill.splitlines() if line.startswith("description:"))
+        self.assertIn("费曼模式", description)
+        self.assertIn("| 费曼模式 | [feynman](references/feynman.md) |", skill)
+        self.assertIn("费曼模式：<PR>", usage)
+        # The user explains first; the agent probes one question at a time instead of lecturing.
+        for required in ("Do not explain yet", "ask one question", "Do not give the full answer first",
+                         "three sentences"):
+            self.assertIn(required, feynman)
+        # Learning is not test design: nothing is written, reviewed or approved in this mode.
+        self.assertIn("write\nno review document, Case or file", feynman)
+        self.assertIn("open no gate", feynman)
+        # The focus comes from the project's own preferences, never a layer fixed in the skill.
+        self.assertIn("case-preferences.md", feynman)
+        self.assertNotIn("black-box", feynman.lower())
+
     def test_reviews_are_central_and_automation_is_suite_owned(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         initialize = (ROOT / "references" / "initialize.md").read_text(encoding="utf-8")
