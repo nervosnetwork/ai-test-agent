@@ -18,14 +18,14 @@ Case ID = Test Point ID. Preserve IDs; no duplicate case/status ledgers.
 - Compact work includes B design review, not full PR-v2 accounting/state unless requested or required.
   Existing `.ai-test-agent/` state alone is not a request; preserve active gates. Intent-preserving
   follow-up edits need no G1, B call, freeze or report.
-- Use native runners, fixtures and style; isolated builds needed by authorized tests are allowed.
+- Use native runners, fixtures and style; authorized isolated builds are allowed.
   Use bundled evidence tools, not ad hoc hash/report scripts.
 - Scope limits breadth, not test-tree depth. Split distinct observable outcomes; group variations
   sharing setup, action and oracle; mark unread branches with a resume point.
 - Reviews require **Spec → 测试树 → 用例**. State oracle, entry, observation and verification layer
   outside the table; follow [verification quality](references/verification-quality.md).
-- Run focused tests and both checkers once after changes; broaden only for affected shared
-  dependencies. Bound network retries. Do not repeatedly poll CI or reread unchanged files.
+- Run focused tests and both checkers once. Broaden only for shared impact. Bound network retries.
+  Do not repeatedly poll CI or reread unchanged files.
 
 ## Review and implementation
 
@@ -64,6 +64,7 @@ stay unknown. Never award yourself independent B review.
 | Implement / maintain automation | [automation-maintenance](references/automation-maintenance.md) |
 | PR impact / explicit full PR-v2 | [pr-analysis](references/pr-analysis.md) |
 | Requested security audit / funds risk | [security-review](references/security-review.md) |
+| CKB contracts | [ckb-contracts](references/ckb-contracts.md) |
 
 ## Output budget
 

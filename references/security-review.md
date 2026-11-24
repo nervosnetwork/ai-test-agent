@@ -3,6 +3,8 @@
 Use this route for an explicit security audit, attack-path investigation or funds-risk question.
 Ordinary functional acceptance does not automatically become an exhaustive security audit.
 Follow `workflow.md` for authorization; use `templates/security-review.md` with existing Case IDs.
+For CKB lock/type scripts, also read `ckb-contracts.md` for transaction actions, implicit
+parameters, deployment identity, and the script-versus-node evidence boundary.
 
 Start from assets and trust boundaries: who can change code/roots/configuration, authorize a
 payment, supply a proof, select inputs and receive outputs? Distinguish an unprivileged caller,
