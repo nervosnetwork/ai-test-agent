@@ -6,6 +6,20 @@ Follow `workflow.md` for authorization; use `templates/security-review.md` with 
 For CKB lock/type scripts, also read `ckb-contracts.md` for transaction actions, implicit
 parameters, deployment identity, and the script-versus-node evidence boundary.
 
+For a PR that changes a contract between components, map each affected edge:
+the producer and artifact, the consumer's assumption, authoritative identity
+and value, when that assertion can become stale, and the retry or recovery path.
+Compare removed guards with their replacements; show that the replacement runs
+in the component carrying the risk in every relevant state, not just that a helper
+or design note exists. Derive a same-entry valid control and one-boundary-at-a-time
+negative mutations. Observe both sides of the edge after failure or restart,
+using an oracle independent of the changed implementation. Distinguish a
+test-controlled schedule from an externally reachable path and group failures
+that share one cause.
+
+Generic methods may be published with explicit approval. Keep issue-specific
+findings and reproductions local or in an approved private destination.
+
 Start from assets and trust boundaries: who can change code/roots/configuration, authorize a
 payment, supply a proof, select inputs and receive outputs? Distinguish an unprivileged caller,
 a beneficiary, a coordinator and each privileged key holder. Inspect all relevant exits, including
